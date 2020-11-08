@@ -1,0 +1,15 @@
+-
+  Project: {{title}}
+  Bioinformatician: {{bioinformatician}}
+  Scientist: {{scientist}}
+  Lab: {{lab}}
+  Code: {{code}}
+  Estimate: {{time}}
+  Created: {{date}}
+  Path: {{path}}
+  Hash: {{hash}}
+  Scititle: {{title}}
+  Active: False
+  Type: {{type}}
+  Lims: {{lims}}
+
