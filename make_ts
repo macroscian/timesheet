@@ -1,0 +1,244 @@
+include $(repos_config)
+trim := $(subst /camp/stp/babs/working/,,$(CURDIR))
+dirlist := $(subst /, ,$(trim))
+bioinf := $(word 1, $(dirlist))
+lab := $(word 3, $(dirlist))
+scientist := $(word 4, $(dirlist))
+project := $(wordlist 5, $(words $(dirlist)) ,$(dirlist))
+code = {{code}}
+lims = {{lims}}
+estimate = 0
+date := $(shell date +%F)
+myhash := $(shell echo "$(bioinf)/$(lab)/$(sci)/$(project)" | md5sum | cut -c-12)
+active = True
+type = {{type}}
+ticketdir := /camp/stp/babs/www/kellyg/tickets/
+tickets := $(wildcard $(ticketdir)$(USER)_$(hash)*.yml)
+ntickets := $(words $(tickets))
+me := $(shell whoami)
+babsfield = $(shell awk '$$1 == "$(1):"{print$$2}' .babs)
+ticketfield = $(shell awk '$$1 == "$(1):"{print$$2}' $(tickets))
+
+define yaml
+-
+  Project: $(project)
+  Bioinformatician: $(bioinf)
+  Scientist: $(scientist)
+  Lab: $(lab)
+  Code: $(code)
+  Estimate: $(estimate)
+  Created: $(date)
+  Path: $(CURDIR)
+  Scititle: $(project)
+  Lims: $(lims)
+  Hash: $(myhash)
+  Active: $(active)
+  Type: $(type)
+
+endef
+export yaml
+
+.PHONY: default help init show new_estimate increment refresh toggle toggle_pre tickets grab count get claim fixed_babs .babs
+
+default: help count show
+
+help:        ## Show this help.
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+
+init:        ## Create .babs file and refresh website. Add 'code=XXX' and 'type=YYY' to add code and project type.
+init: .babs refresh 
+
+.babs:       ## Just create .babs file. Same options as 'init'
+	@if test -f ".babs" ;\
+	then \
+	  echo "Directory already contains a .babs file.  Please remove it first" ;\
+	else \
+	  echo "$$yaml" > .babs ;\
+	fi
+
+show:        ## Show the current configuration
+	@if test -f ".babs" ;\
+	  then \
+	  echo "Current contents:" ;\
+	  cat .babs  ;\
+	  else \
+	  echo "Currently no .babs file here" ;\
+	fi
+
+get:         ## Add 'key=XXX' to get value of field XXX in the .babs file, e.g. key=Lab
+	@if test -f ".babs" ;\
+	  then \
+	  echo $(call babsfield,$(key)) ;\
+	  else \
+	  echo "Currently no .babs file here" ;\
+	fi
+
+new_estimate:## Add 'estimate=h' to update the time-estimate for current project to 'h' hours
+	@if test -f ".babs" ;\
+	then \
+	  sed -i 's/  Estimate:.*/  Estimate: $(estimate)/' .babs ;\
+	else \
+	  echo "Currently no .babs file here" ;\
+	fi
+
+increment:   ## Add 'inc=h' to increase the time-estimate for current project by 'h' hours
+	@if test -f ".babs" ;\
+	then \
+	  awk -F ':' '$$1 ~ /Estimate/ {print $$1 ": " $$2 + $(inc);next}{print $$0}' .babs > .babs.tmp && mv .babs.tmp .babs ;\
+	else \
+	  echo "Currently no .babs file here" ;\
+	fi
+
+refresh:     ## Update website with any changes (usually done for you by init, grab and mkdir)
+	cat $$(find -L /camp/stp/babs/working/$(USER)/[pP]rojects -maxdepth 4 -mindepth 4 -type f -name .babs 2>/dev/null)  >/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml
+
+toggle:      ## Toggle whether current project is active, and refresh.
+toggle: toggle_pre refresh
+
+toggle_pre:
+	@if test -f ".babs" ;\
+	then \
+	  sed -i 's/^  Active: True/actfalse/' .babs ;\
+	  sed -i 's/^  Active: False/  Active: True/' .babs ;\
+	  sed -i 's/^actfalse/  Active: False/' .babs ;\
+	else \
+	  echo "Currently no .babs file here" ;\
+	fi
+
+
+count:       ## Report if there are any tickets
+	@if [ $(ntickets) -eq 0 ] ;\
+	then \
+	  echo "No tickets";\
+	else \
+	  if [ $(ntickets) -eq 1 ] ;\
+	  then \
+	    echo -e "\e[31mYou have a ticket.\e[0m" ;\
+	  else \
+	    echo -e "\e[31mYou have" $(ntickets) "tickets\e[0m" ;\
+	  fi \
+	fi
+
+
+tickets:     ## Show submitted tickets
+	@if [ $(ntickets) -eq 0 ] ;\
+	then \
+	  echo "No tickets";\
+	else \
+	  cat $(tickets) ;\
+	fi
+
+grab:        ## Pull ticket (with 'hash=XXX' if more than one) into current working directory's .babs file
+grab: grab_pre refresh
+
+grab_pre:
+	@if [ $(ntickets) -eq 0 ] ;\
+	then \
+	  echo "No tickets match";\
+	else \
+	  if [ $(ntickets) -eq 1 ] ;\
+	  then \
+	  cp -n $(tickets) .babs;\
+	  mv -n $(tickets) $(subst /tickets/,/tickets/old/,$(tickets));\
+	  sed -i 's/^  Active: False/  Active: True/' .babs;\
+	  else \
+	    echo -e "\e[31mYou have" $(ntickets) "tickets\e[0m" ;\
+	    echo "Specify unique 'hash=XXX'. Tickets " $(tickets) "all match" 1>&2 ;\
+	  fi ;\
+	fi
+
+
+claim:       ## Change the assigned bioinformatician. Requires option 'USER=campid' to identify original assignee.  Same option can be given to the tickets function, to see their tickets.
+	@if [ $(ntickets) -eq 0 ] ;\
+	then \
+	  echo "No tickets match";\
+	else \
+	  if [ $(ntickets) -eq 1 ] ;\
+	  then \
+	  cp -n $(tickets) $(subst /tickets/,tickets/old/,$(tickets));\
+	  sed -i 's/Bioinformatician: $(USER)/Bioinformatician: $(me)/' $(tickets);\
+	  sed -i 's|working/$(USER)|working/$(me)|' $(tickets);\
+	  mv $(tickets) $(subst $(USER)_,$(me)_,$(tickets)) ;\
+	  else \
+	    echo -e "\e[31m" $(ntickets) "tickets match\e[0m" ;\
+	    echo "Specify unique 'hash=XXX'. Tickets " $(tickets) "all match" 1>&2 ;\
+	  fi ;\
+	fi
+
+
+fixed_babs:  ## Create project directory from a .babs you've 'grab'ed to current directory and possibly edited
+	@if test -f ".babs" ;\
+	then \
+	  pathtick=$(call babsfield,Path) ;\
+	  mkdir -p $${pathtick} ;\
+	  sed -i 's/^  Active: False/  Active: True/' .babs;\
+	  mv -n $(tickets) .babs ;\
+	  echo $${pathtick};\
+	else \
+	  echo "No .babs file here - try to 'grab' a ticket"; \
+	fi
+
+
+mkdir:       ## Create project directory (and copy .babs file) corresponding to ticket (with 'hash=XXX' if more than one)
+mkdir: mkdir_pre refresh
+mkdir_pre:
+ifeq ($(tickets), )
+	@echo "No tickets match"
+else
+	@if [ $(ntickets) -eq 1 ] ;\
+	then \
+	  pathtick=$(call ticketfield,Path) ;\
+	  mkdir -p $${pathtick} ;\
+	  cd $${pathtick} ;\
+	  if [ ! -z "$(repo_$(call ticketfield,Type))" ] ;\
+	  then \
+	    git clone -b master --depth 1 $(repo_$(call ticketfield,Type)) . ;\
+	    git remote rm origin ;\
+	  else \
+	    git init ;\
+	  fi ;\
+	  cp $(tickets) .babs ;\
+	  mv -n $(tickets) $(subst /tickets/,/tickets/old/,$(tickets));\
+	  sed -i 's/^  Active: False/  Active: True/' .babs;\
+	  [ ! -f makefile ] ||  make config ;\
+	  echo $${pathtick};\
+	else \
+	  echo "Specify unique 'hash=XXX'. Tickets " $(tickets) "all match" 1>&2 ;\
+	fi
+endif
+
+
+template:
+	git clone -b master --depth 1 $(repo_$(call babsfield,Type)) . ;\
+	cd $(basename $(repo_$(call babsfield,Type))) ;\
+	git remote rm origin ;\
+
+
+record:
+	@if test -f ".babs" ;\
+	  then \
+	  sqlite3 $(ticketdir)../timesheets.db 'INSERT INTO entries (Project,Bioinformatician,Scientist,Lab,Code,Hash,Type,Hours,Date,Note) VALUES("$(call babsfield,Project)","$(USER)","$(call babsfield,Scientist)","$(call babsfield,Lab)","$(call babsfield,Code)","$(call babsfield,Hash)","$(call babsfield,Type)",$(shell echo $(hours) | bc),"$(date)","$(note)");' ;\
+	  else \
+	  echo "Currently no .babs file here" ;\
+	fi
+
+comma := ,
+
+share:       ## Create tickets corresponding to the project directory you're in. Requires option 'with=campid,campid' to say who you're sharing it with. `code=XXX` to change the timecode they'll get.
+	@if test -f ".babs" ;\
+	  then \
+	  for w in $(subst $(comma), ,$(with)) ;\
+	  do \
+	    nf=$(ticketdir)$${w}_$(call babsfield,Hash).yml; \
+	    cp -n .babs $${nf} ;\
+	    sed -i "s/Bioinformatician: $(USER)/Bioinformatician: $${w}/" $${nf} ;\
+	    sed -i "s|working/$(USER)|working/$${w}|" $${nf} ;\
+	    if [ "$(code)" != "{{code}}" ] ;\
+	    then \
+	      sed -i "s/Code: .*/Code: $(code)/" $${nf} ;\
+	    fi;\
+	  done; \
+	else \
+	  echo "Currently no .babs file here" ;\
+	fi
+
