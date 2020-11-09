@@ -15,7 +15,7 @@ manually).
 On submission, the form values get inserted into the
 [template](template.txt) which gets saved in a web directory
 accessible to the timesheet system via commands implemented in
-(make)[make_ts].
+[make_ts](make_ts).
 
 ### Timesheets
 
