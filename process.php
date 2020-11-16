@@ -33,10 +33,13 @@
 	$record = str_replace("{{date}}", $date, $record);
 	$record = str_replace("{{path}}", $path, $record);
 	$record = str_replace("{{hash}}", $hash, $record);
-	$record = str_replace("{{code}}", $_POST["code"], $record);
-	$record = str_replace("{{time}}", $_POST["time"], $record);
+	if (array_key_exists("code", $_POST)) {
+	    $record = str_replace("{{code}}", $_POST["code"], $record);
+	    $record = str_replace("{{time}}", $_POST["time"], $record);
+	}
 	$record = str_replace("{{type}}", $_POST["projtype"], $record);
-	$fname = "/camp/stp/babs/www/kellyg/tickets/" . $_POST["bioinformatician"] . "_" . $hash . ".yml";
+	post_project = "test_" . $_POST["bioinformatician"] . "_" . $hash
+	$fname = "/camp/stp/babs/www/kellyg/tickets/" . $post_project . ".yml";
 	file_put_contents($fname, $record);
 	/* $body = rawurlencode("For reference, an entry has been made in the Biostatistics database. Please keep the following line in any email correspondence:\r\nBABS-ID:" . $hash . "\r\n$record");
 	   $subject = rawurlencode($_POST["title"]);  */
@@ -54,10 +57,17 @@
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-	$result = curl_exec($ch);
+	#	$result = curl_exec($ch);
 	#print_r($data);
-	
+	if (!array_key_exists("code", $_POST)) {
+	    echo "<p>" . $_POST["lab"] . "@crick.ac.uk  has been emailed to assign a cost-code and initial amount of time that BABS can spend on this project. You will receive an email when is has been approved  - please follow up with them if you don't receive this.</p>";
+	    mail($_POST["bioinformatician"] . "@crick.ac.uk", "Approval required: " . $_POST["title"], $_POST["scientist"] . " has requested we work on a project '". $_POST["title"]  ." '.  It is necessary for us to seek PI approval before we start work on this, so please visit the following page to allocate a cost-code and initial estimate of time you permit us to spend working on the project.\n\n https://wiki-bioinformatics.thecrick.org/~kellyg/test/approval.php?project=" . $hash . "\n\n");
+	} else {
+	    echo "<p>Thank you for completing this - an email has been sent to the scientist and the allocated member of BABS - you will receive a copy. If you wish to monitor spend on this project, then please visit www1 (or www2 if you wish to monitor BABS time to all projects in your lab.</p>";
+	    mail($_POST["bioinformatician"] . "@crick.ac.uk", "Approval received: " . $_POST["title"], "We have received PI approval for ". $_POST["time"]  ." hours to be spent using code ". $_POST["code"]  ." on '". $_POST["title"]  ." '.\n");
+	}
 	#	echo "<p>A copy has been forwarded to the bioinformatics team, and you will also receive an email containing the above unique ID</p>";
+	#	echo mail($_POST["scientist"] . ", " . $_POST["bioinformatician"] . "@crick.ac.uk", $_POST["title"], "For reference, an entry has been made in the Biostatistics database. Please keep the following line in any email correspondence:\nBABS-ID: $hash\n\n$record\n", "From: " . $_POST["bioinformatician"] . "@crick.ac.uk");
 	#	echo mail($_POST["scientist"] . ", " . $_POST["bioinformatician"] . "@crick.ac.uk", $_POST["title"], "For reference, an entry has been made in the Biostatistics database. Please keep the following line in any email correspondence:\nBABS-ID: $hash\n\n$record\n", "From: " . $_POST["bioinformatician"] . "@crick.ac.uk");
 	?>
       </p>

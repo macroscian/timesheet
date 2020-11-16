@@ -1,3 +1,23 @@
+LIVE := "/camp/stp/babs/www/kellyg/public_html/LIVE/tickets"
+DEV := "/camp/stp/babs/www/kellyg/public_html/LIVE/tickets_test"
+DIR := ${CURDIR}
+TSDIR := "/camp/stp/babs/working/time"
+
+deploy:
+	BRANCH=`git rev-parse --abbrev-ref HEAD` ;\
+	if [ "$${BRANCH}" = "live" ];\
+	then \
+	git archive $${BRANCH} | tar -x -C $(LIVE) ;\
+	cd $(LIVE) ;\
+	mv make_ts $(TS)/makefile ;\
+	else \
+	git archive $${BRANCH} | tar -x -C $(DEV) ;\
+	cd $(DEV) ;\
+	rm make_ts ;\
+	fi ;\
+	make groups.json ;\
+	rm makefile
+
 tickets.db:
 	sqlite tickets.db "CREATE TABLE tickets (\
 scientist TEXT NOT NULL,\

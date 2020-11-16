@@ -1,3 +1,4 @@
+tsmake := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 include $(repos_config)
 trim := $(subst /camp/stp/babs/working/,,$(CURDIR))
 dirlist := $(subst /, ,$(trim))
@@ -5,6 +6,9 @@ bioinf := $(word 1, $(dirlist))
 lab := $(word 3, $(dirlist))
 scientist := $(word 4, $(dirlist))
 project := $(wordlist 5, $(words $(dirlist)) ,$(dirlist))
+ifeq ($(project),)
+project := $(scientist)
+endif
 code = {{code}}
 lims = {{lims}}
 estimate = 0
@@ -18,6 +22,7 @@ ntickets := $(words $(tickets))
 me := $(shell whoami)
 babsfield = $(shell awk '$$1 == "$(1):"{print$$2}' .babs)
 ticketfield = $(shell awk '$$1 == "$(1):"{print$$2}' $(tickets))
+generic = Annual_Leave Bank_Holiday Training Learning develop Admin 
 
 define yaml
 -
@@ -56,6 +61,15 @@ init: .babs refresh
 	  echo "$$yaml" > .babs ;\
 	fi
 
+generic: $(generic)
+
+$(generic):
+	mkdir -p /camp/stp/babs/working/kellyg/projects/babs/.$@ && cd "$$_" ;\
+	[ ! -f .babs ] || mv .babs .babs.old ;\
+	make -f $(tsmake) .babs code=$@ project="$(subst _, ,$@)" myhash=$@
+
+	    
+
 show:        ## Show the current configuration
 	@if test -f ".babs" ;\
 	  then \
@@ -91,6 +105,7 @@ increment:   ## Add 'inc=h' to increase the time-estimate for current project by
 
 refresh:     ## Update website with any changes (usually done for you by init, grab and mkdir)
 	cat $$(find -L /camp/stp/babs/working/$(USER)/[pP]rojects -maxdepth 4 -mindepth 4 -type f -name .babs 2>/dev/null)  >/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml
+	cat $$(find -L /camp/stp/babs/working/$(USER)/[pP]rojects/babs -maxdepth 2 -mindepth 2 -type f -name .babs 2>/dev/null)  >>/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml
 
 toggle:      ## Toggle whether current project is active, and refresh.
 toggle: toggle_pre refresh
@@ -155,7 +170,7 @@ claim:       ## Change the assigned bioinformatician. Requires option 'USER=camp
 	else \
 	  if [ $(ntickets) -eq 1 ] ;\
 	  then \
-	  cp -n $(tickets) $(subst /tickets/,tickets/old/,$(tickets));\
+	  cp -n $(tickets) $(subst /tickets/,/tickets/old/,$(tickets));\
 	  sed -i 's/Bioinformatician: $(USER)/Bioinformatician: $(me)/' $(tickets);\
 	  sed -i 's|working/$(USER)|working/$(me)|' $(tickets);\
 	  mv $(tickets) $(subst $(USER)_,$(me)_,$(tickets)) ;\

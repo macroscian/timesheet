@@ -17,13 +17,13 @@
 	
 	<div class="form-group row">
 	  <label for="scientist"  class="col-sm-2 form-label">Your email address</label>
-	  <input type="email" class="form-control col-sm-6" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk" required>
+	  <input type="email" class="form-control col-sm-6 no-pi" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk">
 	  <small id="emailHelp" class="form-text text-muted col-sm-12">The email address of the person we will primarily dealing with.</small>
 	</div>
 
 	<div class="form-group row">
 	  <label for="lab" class="col-sm-2 form-label">Your Lab</label>
-	  <select class="form-control col-sm-3" id="lab" name="lab" required>
+	  <select class="form-control col-sm-3 no-pi" id="lab" name="lab" required>
 	    <optgroup label="Research Groups" id="lablist">
 	      <option disabled selected>Select a Lab/STP.</option>
 	    </optgroup>
@@ -36,11 +36,14 @@
 
 	<div class="form-group row">
 	  <label for="title" class="col-sm-2 form-label">Short Title</label>
-	  <input type="text" class="form-control col-sm-6" id="title" aria-describedby="titlelHelp" placeholder="Short descriptive title" name="title" minlength="5" maxlength="50" required>
+	  <input type="text" class="form-control col-sm-6 no-pi" id="title" aria-describedby="titlelHelp" placeholder="Short descriptive title" name="title" minlength="5" maxlength="50" required>
 	  <small id="titleHelp" class="form-text text-muted col-sm-12">The shortest amount of text that will help you, your PI, the bioinformatician recognise the project. Good examples would be 'Power calc for MRC application' or 'RNASeq of CD4+ cells'; bad examples are 'Stats question' or 'CD4 cells'</small>
 	</div>
-
-	<div class="form-group row">
+	<?php
+	$fname = glob("/camp/stp/babs/www/kellyg/tickets/*_" . $_GET["project"] . ".yml");
+	if (count($fname) == 1) {
+	?>
+	  <div class="form-group row">
 	  <label for="code" class="col-sm-2 form-label">Cost Code</label>
 	  <input type="text" pattern="[0-9]{5}" class="form-control col-sm-3" id="code" aria-describedby="codeHelp" name="code" required>
 	  <small id="codeHelp" class="form-text text-muted col-sm-7">Your PI should be able to provide a code so that STPs can keep track of where their time is spent.</small>
@@ -51,29 +54,37 @@
 	  <input type="text" pattern="[0-9]+" class="form-control col-sm-3" id="time" aria-describedby="timeHelp"  name="time" required>
 	  <small id="timeHelp" class="form-text text-muted col-sm-7">A very rough estimate.  If it's just to book in for a brief initial chat, put 1.</small>
 	</div>
-
+	<?php
+	}
+	?>
 	<div class="form-group row">
 	  <label for="projtype" class="col-sm-2 form-label">Project Type</label>
-	  <select class="form-control col-sm-3" id="projtype" name="projtype" required>
+	  <select class="form-control col-sm-3 no-pi" id="projtype" name="projtype" required>
 	  </select>
-	  <small id="timeHelp" class="form-text text-muted col-sm-7">Type of project</small>
+	  <small id="typeHelp" class="form-text text-muted col-sm-7">Type of project</small>
 	</div>
 
 	<div class="form-group row">
 	  <label for="bioinformatician" class="col-sm-2 form-label">Bioinformatician</label>
-	  <select class="form-control col-sm-3" id="bioinformatician" name="bioinformatician" required>
+	  <select class="form-control col-sm-3 no-pi" id="bioinformatician" name="bioinformatician" required>
 	  </select>
 	</div>
 	<button type="submit" class="btn btn-primary">Submit</button>
       </form>
       <div class="mt-5 p-2 border">
 	<p>Finance requires BABS to record the number of hours we work
-	  on projects, andthis will be charged against the code at the
+	  on projects, and this will be charged against the code at the
 	  current rate of £75/hour. Finance's cost-model doesn't allow
 	  us to charge other STPs, or work we do for the Crick or larger
 	  scientific community as a whole, development or training etc,
 	  so please don't think we earn this!<p>
-	  <p>By submitting this form, you are confirming that your PI has agreed the cost-code can be used for this purpose.</p>
+	  <p>Submitting this form will inform the relevant bioinformatician
+	    and send a request for budget allocation to your PI. We will
+	    work for one hour before charging starts, to allow an initial
+	    estimate to be developed, or small queries to be answered: we will
+	    record all projects that do not proceed beyond this point. No work beyond
+	    the initial one hour will proceed without PI sign-off.
+	  </p>
 	  <p>This charge does not affect the <a href="https://intranet.crick.ac.uk/our-crick/research-integrity/pages/publication-authorship">Crick's
 	    authorship policy</a>: regardless of whether it is Core or
 	    Grant funded, we generally expect our significant
@@ -156,43 +167,51 @@
 	 });
      Promise.all(requests).then(
 	 function(data) {
-     <?php
-     $fname = "/camp/stp/babs/www/kellyg/tickets/" . $_GET["project"] . ".yml";
-     if (file_exists($fname)) {
-	 foreach (file($fname) as $line)
-	 {
-	     list($key, $value) = explode(': ', $line, 2) + array(NULL, NULL);
-	     if ($value !== NULL)
-	     {
-		 $key=strtolower(trim($key));
-		 $value=trim($value);
-		 switch ($key) {
-		     case "project":
-			 echo "document.getElementById(\"title\").value = \"$value\";"; 
-			 break;
-		     case "estimate":
-			 echo "document.getElementById(\"time\").value = \"$value\";"; 
-			 break;
-		     case "scientist":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "code":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "code":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "bioinformatician":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "lab":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
+	     <?php
+     	     $fname = glob("/camp/stp/babs/www/kellyg/tickets/*_" . $_GET["project"] . ".yml");
+	     if (count($fname)==1) {
+		 foreach (file($fname[0]) as $line)
+		 {
+		     list($key, $value) = explode(': ', $line, 2) + array(NULL, NULL);
+		     if ($value !== NULL)
+		     {
+			 $key=strtolower(trim($key));
+			 $value=trim($value);
+			 switch ($key) {
+			     case "project":
+				 echo "document.getElementById(\"title\").value = \"$value\";"; 
+				 echo "document.getElementById(\"title\").readOnly = true;"; 
+				 break;
+			     case "estimate":
+				 echo "document.getElementById(\"time\").value = \"$value\";"; 
+				 break;
+			     case "scientist":
+				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
+				 echo "document.getElementById(\"$key\").readOnly = true;"; 
+				 break;
+			     case "code":
+				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
+				 break;
+			     case "type":
+				 echo "document.getElementById(\"projtype\").value = \"$value\";"; 
+				 echo "document.getElementById(\"projtype\").style.pointerEvents = \"none\";"; 
+				 echo "document.getElementById(\"projtype\").style.backgroundColor = \"#E9ECEF\";"; 
+				 break;
+			     case "bioinformatician":
+				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
+				 echo "document.getElementById(\"$key\").style.pointerEvents = \"none\";"; 
+				 echo "document.getElementById(\"$key\").style.backgroundColor = \"#E9ECEF\";"; 
+				 break;
+			     case "lab":
+				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
+				 echo "document.getElementById(\"$key\").style.pointerEvents = \"none\";"; 
+				 echo "document.getElementById(\"$key\").style.backgroundColor = \"#E9ECEF\";"; 
+				 break;
+			 }
+		     }
 		 }
 	     }
-	 }
-     }
-     ?>
+	     ?>
      });
     </script>
   </body>
