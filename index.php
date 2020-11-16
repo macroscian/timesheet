@@ -35,9 +35,9 @@
 	</div>
 
 	<div class="form-group row">
-	  <label for="title" class="col-sm-2 form-label">Short Title</label>
-	  <input type="text" class="form-control col-sm-6" id="title" aria-describedby="titlelHelp" placeholder="Short descriptive title" name="title" minlength="5" maxlength="50" required>
-	  <small id="titleHelp" class="form-text text-muted col-sm-12">The shortest amount of text that will help you, your PI, the bioinformatician recognise the project. Good examples would be 'Power calc for MRC application' or 'RNASeq of CD4+ cells'; bad examples are 'Stats question' or 'CD4 cells'</small>
+	  <label for="project" class="col-sm-2 form-label">Short Title</label>
+	  <input type="text" class="form-control col-sm-6" id="project" aria-describedby="projectlHelp" placeholder="Short descriptive title" name="project" minlength="5" maxlength="50" required>
+	  <small id="projectHelp" class="form-text text-muted col-sm-12">The shortest amount of text that will help you, your PI, the bioinformatician recognise the project. Good examples would be 'Power calc for MRC application' or 'RNASeq of CD4+ cells'; bad examples are 'Stats question' or 'CD4 cells'</small>
 	</div>
 
 	<div class="form-group row">
@@ -47,16 +47,16 @@
 	</div>
 
 	<div class="form-group row">
-	  <label for="time" class="col-sm-2 form-label">Estimate of hours</label>
-	  <input type="text" pattern="[0-9]+" class="form-control col-sm-3" id="time" aria-describedby="timeHelp"  name="time" required>
-	  <small id="timeHelp" class="form-text text-muted col-sm-7">A very rough estimate.  If it's just to book in for a brief initial chat, put 1.</small>
+	  <label for="estimate" class="col-sm-2 form-label">Estimate of hours</label>
+	  <input type="text" pattern="[0-9]+" class="form-control col-sm-3" id="estimate" aria-describedby="estimateHelp"  name="estimate" required>
+	  <small id="estimateHelp" class="form-text text-muted col-sm-7">A very rough estimate.  If it's just to book in for a brief initial chat, put 1.</small>
 	</div>
 
 	<div class="form-group row">
-	  <label for="projtype" class="col-sm-2 form-label">Project Type</label>
-	  <select class="form-control col-sm-3" id="projtype" name="projtype" required>
+	  <label for="type" class="col-sm-2 form-label">Project Type</label>
+	  <select class="form-control col-sm-3" id="type" name="type" required>
 	  </select>
-	  <small id="timeHelp" class="form-text text-muted col-sm-7">Type of project</small>
+	  <small id="estimateHelp" class="form-text text-muted col-sm-7">Type of project</small>
 	</div>
 
 	<div class="form-group row">
@@ -92,7 +92,7 @@
 	 .then(response => response.json())
 	 .then(function(data) {  
 	     let option;
-	     let types = document.getElementById('projtype');
+	     let types = document.getElementById('type');
 	     let suggested_type="<?php echo $_GET["type"]; ?>";
 
 	     if (suggested_type!="") {
@@ -156,43 +156,47 @@
 	 });
      Promise.all(requests).then(
 	 function(data) {
-     <?php
-     $fname = "/camp/stp/babs/www/kellyg/tickets/" . $_GET["project"] . ".yml";
-     if (file_exists($fname)) {
-	 foreach (file($fname) as $line)
-	 {
-	     list($key, $value) = explode(': ', $line, 2) + array(NULL, NULL);
-	     if ($value !== NULL)
-	     {
-		 $key=strtolower(trim($key));
-		 $value=trim($value);
-		 switch ($key) {
-		     case "project":
-			 echo "document.getElementById(\"title\").value = \"$value\";"; 
-			 break;
-		     case "estimate":
-			 echo "document.getElementById(\"time\").value = \"$value\";"; 
-			 break;
-		     case "scientist":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "code":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "code":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "bioinformatician":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
-		     case "lab":
-			 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-			 break;
+	     <?php
+     	     $fname = glob("/camp/stp/babs/www/kellyg/tickets/*_" . $_GET["project"] . ".yml");
+	     if (count($fname)==1) {
+		 foreach (file($fname[0]) as $line)
+		 {
+		     list($key, $value) = explode(': ', $line, 2) + array(NULL, NULL);
+		     if ($value !== NULL)
+		     {
+			 $key=strtolower(trim($key));
+			 $value=trim($value);
+			 if (substr($value, 0, 2) == "{{") {
+			     $value = "";
+			 }
+			 $el = "document.getElementById(\"$key\")";
+			 switch ($key) {
+			     case "project":
+				 echo "$el.value = \"$value\";";
+				 break;
+			     case "scientist":
+				 echo "$el.value = \"$value\";";
+				 break;
+			     case "type":
+				 echo "$el.value = \"$value\";";
+				 break;
+			     case "bioinformatician":
+				 echo "$el.value = \"$value\";";
+				 break;
+			     case "lab":
+				 echo "$el.value = \"$value\";";
+				 break;
+			     case "code":
+				 echo "$el.value = \"$value\";";
+				 break;
+			     case "estimate":
+				 echo "$el.value = \"$value\";";
+				 break;
+			 }
+		     }
 		 }
 	     }
-	 }
-     }
-     ?>
+	     ?>
      });
     </script>
   </body>

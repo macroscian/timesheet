@@ -17,7 +17,7 @@
 	
 	<div class="form-group row">
 	  <label for="scientist"  class="col-sm-2 form-label">Your email address</label>
-	  <input type="email" class="form-control col-sm-6 no-pi" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk">
+	  <input type="email" class="form-control col-sm-6 no-pi" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk" required>
 	  <small id="emailHelp" class="form-text text-muted col-sm-12">The email address of the person we will primarily dealing with.</small>
 	</div>
 
@@ -35,9 +35,9 @@
 	</div>
 
 	<div class="form-group row">
-	  <label for="title" class="col-sm-2 form-label">Short Title</label>
-	  <input type="text" class="form-control col-sm-6 no-pi" id="title" aria-describedby="titlelHelp" placeholder="Short descriptive title" name="title" minlength="5" maxlength="50" required>
-	  <small id="titleHelp" class="form-text text-muted col-sm-12">The shortest amount of text that will help you, your PI, the bioinformatician recognise the project. Good examples would be 'Power calc for MRC application' or 'RNASeq of CD4+ cells'; bad examples are 'Stats question' or 'CD4 cells'</small>
+	  <label for="project" class="col-sm-2 form-label">Short Title</label>
+	  <input type="text" class="form-control col-sm-6 no-pi" id="project" aria-describedby="projectlHelp" placeholder="Short descriptive title" name="project" minlength="5" maxlength="50" required>
+	  <small id="projectHelp" class="form-text text-muted col-sm-12">The shortest amount of text that will help you, your PI, the bioinformatician recognise the project. Good examples would be 'Power calc for MRC application' or 'RNASeq of CD4+ cells'; bad examples are 'Stats question' or 'CD4 cells'</small>
 	</div>
 	<?php
 	$fname = glob("/camp/stp/babs/www/kellyg/tickets/*_" . $_GET["project"] . ".yml");
@@ -46,20 +46,20 @@
 	  <div class="form-group row">
 	  <label for="code" class="col-sm-2 form-label">Cost Code</label>
 	  <input type="text" pattern="[0-9]{5}" class="form-control col-sm-3" id="code" aria-describedby="codeHelp" name="code" required>
-	  <small id="codeHelp" class="form-text text-muted col-sm-7">Your PI should be able to provide a code so that STPs can keep track of where their time is spent.</small>
+	  <small id="codeHelp" class="form-text text-muted col-sm-7">Please provide a code so that STPs can keep track of where their time is spent.</small>
 	</div>
 
 	<div class="form-group row">
-	  <label for="time" class="col-sm-2 form-label">Estimate of hours</label>
-	  <input type="text" pattern="[0-9]+" class="form-control col-sm-3" id="time" aria-describedby="timeHelp"  name="time" required>
-	  <small id="timeHelp" class="form-text text-muted col-sm-7">A very rough estimate.  If it's just to book in for a brief initial chat, put 1.</small>
+	  <label for="estimate" class="col-sm-2 form-label">Estimate of hours</label>
+	  <input type="text" pattern="[0-9]+" class="form-control col-sm-3" id="estimate" aria-describedby="estimateHelp"  name="estimate" required>
+	  <small id="estimateHelp" class="form-text text-muted col-sm-7">How much time you want to allocate for this project.</small>
 	</div>
 	<?php
 	}
 	?>
 	<div class="form-group row">
-	  <label for="projtype" class="col-sm-2 form-label">Project Type</label>
-	  <select class="form-control col-sm-3 no-pi" id="projtype" name="projtype" required>
+	  <label for="type" class="col-sm-2 form-label">Project Type</label>
+	  <select class="form-control col-sm-3 no-pi" id="type" name="type" required>
 	  </select>
 	  <small id="typeHelp" class="form-text text-muted col-sm-7">Type of project</small>
 	</div>
@@ -103,7 +103,7 @@
 	 .then(response => response.json())
 	 .then(function(data) {  
 	     let option;
-	     let types = document.getElementById('projtype');
+	     let types = document.getElementById('type');
 	     let suggested_type="<?php echo $_GET["type"]; ?>";
 
 	     if (suggested_type!="") {
@@ -177,35 +177,33 @@
 		     {
 			 $key=strtolower(trim($key));
 			 $value=trim($value);
+			 if (substr($value, 0, 2) == "{{") {
+			     $value = "";
+			 }
+			 $el = "document.getElementById(\"$key\")";
 			 switch ($key) {
 			     case "project":
-				 echo "document.getElementById(\"title\").value = \"$value\";"; 
-				 echo "document.getElementById(\"title\").readOnly = true;"; 
-				 break;
-			     case "estimate":
-				 echo "document.getElementById(\"time\").value = \"$value\";"; 
+				 echo "$el.value = \"$value\";";
+				 echo "$el.readOnly = true;"; 
 				 break;
 			     case "scientist":
-				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-				 echo "document.getElementById(\"$key\").readOnly = true;"; 
-				 break;
-			     case "code":
-				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
+				 echo "$el.value = \"$value\";";
+				 echo "$el.readOnly = true;"; 
 				 break;
 			     case "type":
-				 echo "document.getElementById(\"projtype\").value = \"$value\";"; 
-				 echo "document.getElementById(\"projtype\").style.pointerEvents = \"none\";"; 
-				 echo "document.getElementById(\"projtype\").style.backgroundColor = \"#E9ECEF\";"; 
+				 echo "$el.value = \"$value\";";
+				 echo "$el.style.pointerEvents = \"none\";"; 
+				 echo "$el.style.backgroundColor = \"#E9ECEF\";"; 
 				 break;
 			     case "bioinformatician":
-				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-				 echo "document.getElementById(\"$key\").style.pointerEvents = \"none\";"; 
-				 echo "document.getElementById(\"$key\").style.backgroundColor = \"#E9ECEF\";"; 
+				 echo "$el.value = \"$value\";";
+				 echo "$el.style.pointerEvents = \"none\";"; 
+				 echo "$el.style.backgroundColor = \"#E9ECEF\";"; 
 				 break;
 			     case "lab":
-				 echo "document.getElementById(\"$key\").value = \"$value\";"; 
-				 echo "document.getElementById(\"$key\").style.pointerEvents = \"none\";"; 
-				 echo "document.getElementById(\"$key\").style.backgroundColor = \"#E9ECEF\";"; 
+				 echo "$el.value = \"$value\";";
+				 echo "$el.style.pointerEvents = \"none\";"; 
+				 echo "$el.style.backgroundColor = \"#E9ECEF\";"; 
 				 break;
 			 }
 		     }
