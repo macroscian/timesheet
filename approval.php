@@ -14,7 +14,6 @@
     <div class="container">
       <h1>BABS Ticketing</h1>
       <form action="process.php" method="post">
-	
 	<div class="form-group row">
 	  <label for="scientist"  class="col-sm-2 form-label">Your email address</label>
 	  <input type="email" class="form-control col-sm-6 no-pi" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk" required>
@@ -54,10 +53,16 @@
 	  <input type="text" pattern="[0-9]+" class="form-control col-sm-3" id="estimate" aria-describedby="estimateHelp"  name="estimate" required>
 	  <small id="estimateHelp" class="form-text text-muted col-sm-7">How much time you want to allocate for this project.</small>
 	</div>
+	<input type="hidden" id="who" name="who" value="pi">
 	<?php
-	}
+	} else {
 	?>
-	<div class="form-group row">
+	  <input type="hidden" id="who" name="who" value="sci">
+	  <?php
+	  }
+	  ?>
+
+	  <div class="form-group row">
 	  <label for="type" class="col-sm-2 form-label">Project Type</label>
 	  <select class="form-control col-sm-3 no-pi" id="type" name="type" required>
 	  </select>

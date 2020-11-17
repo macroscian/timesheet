@@ -45,6 +45,7 @@
 	  <input type="text" pattern="[0-9]{5}" class="form-control col-sm-3" id="code" aria-describedby="codeHelp" name="code" required>
 	  <small id="codeHelp" class="form-text text-muted col-sm-7">Your PI should be able to provide a code so that STPs can keep track of where their time is spent.</small>
 	</div>
+	<input type="hidden" id="who" name="who" value="scipi">
 
 	<div class="form-group row">
 	  <label for="estimate" class="col-sm-2 form-label">Estimate of hours</label>
