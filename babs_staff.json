@@ -1,12 +1,4 @@
 {
-    "bioinformatics":{
-	"email": "bioinformatics@crick.ac.uk",
-	"first": "Bioinformatics",
-	"surname": ""},
-    "biostatistics":{
-	"email": "biostatistics@crick.ac.uk",
-	"first": "Biostatistics",
-	"surname": ""},
     "stewara":{
 	"email": "Aengus.Stewart@crick.ac.uk",
 	"first": "Aengus",

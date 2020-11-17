@@ -16,16 +16,16 @@
       <form action="process.php" method="post">
 	
 	<div class="form-group row">
-	  <label for="scientist"  class="col-sm-2 form-label">Your email address</label>
+	  <label for="scientist"  class="col-sm-2 form-label"><?php echo array_key_exists('project',$_GET)?"Applicant's":"Your"; ?> email</label>
 	  <input type="email" class="form-control col-sm-6" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk" required>
 	  <small id="emailHelp" class="form-text text-muted col-sm-12">The email address of the person we will primarily dealing with.</small>
 	</div>
 
 	<div class="form-group row">
-	  <label for="lab" class="col-sm-2 form-label">Your Lab</label>
+	  <label for="lab" class="col-sm-2 form-label"><?php echo array_key_exists('project',$_GET)?"Applicant's":"Your"; ?> Lab</label>
 	  <select class="form-control col-sm-3" id="lab" name="lab" required>
+	    <option disabled selected>Select a Lab/STP.</option>
 	    <optgroup label="Research Groups" id="lablist">
-	      <option disabled selected>Select a Lab/STP.</option>
 	    </optgroup>
 	    <optgroup label="STPs" id="stplist">
 	    </optgroup>
@@ -56,6 +56,7 @@
 	<div class="form-group row">
 	  <label for="type" class="col-sm-2 form-label">Project Type</label>
 	  <select class="form-control col-sm-3" id="type" name="type" required>
+	    <option disabled selected>Select closest</option>
 	  </select>
 	  <small id="estimateHelp" class="form-text text-muted col-sm-7">Type of project</small>
 	</div>
@@ -63,6 +64,13 @@
 	<div class="form-group row">
 	  <label for="bioinformatician" class="col-sm-2 form-label">Bioinformatician</label>
 	  <select class="form-control col-sm-3" id="bioinformatician" name="bioinformatician" required>
+	    <option disabled selected>Select an individual/list</option>
+	    <optgroup label="Individuals" id="staff">
+	    </optgroup>
+	    <optgroup label="Mail-list">
+	      <option value="bioinformatics">Bioinformatics</option>
+	      <option value="biostatistics">Biostatistics</option>
+	    </optgroup>
 	  </select>
 	</div>
 	<button type="submit" class="btn btn-primary">Submit</button>
@@ -109,7 +117,7 @@
      requests[1] = fetch("babs_staff.json")
 	 .then(response => response.json())
 	 .then(function(data) {
-	     let bioinfs = document.getElementById('bioinformatician');
+	     let bioinfs = document.getElementById('staff');
 	     let suggested_bioinf="<?php echo $_GET["id"]; ?>";
 	     let option;
 	     if (suggested_bioinf!="") {
@@ -119,7 +127,7 @@
 		 option = document.createElement('option');
 		 option.text = value.first;
 		 option.value = key;
-		 bioinfs.add(option);
+		 bioinfs.appendChild(option);
 	     }
 	 });
      requests[2] = fetch("groups.json")
