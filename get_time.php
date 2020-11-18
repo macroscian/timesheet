@@ -51,9 +51,9 @@ $filters = array_intersect_key(
     )
 );
 
-$and = "";
+$where = "";
 foreach ( $filters as $key => $value ) {
-    $and .= $key . "=:" . $key . " AND ";
+    $where .= $key . "=:" . $key . " AND ";
 }
 
 
@@ -67,7 +67,7 @@ if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  
 	exit;
     }
     $today = new DateTime();
-    $statement = $db->prepare('SELECT MAX(Date) FROM entries WHERE ' . $and . 'Date <= :now;');
+    $statement = $db->prepare('SELECT MAX(Date) FROM entries WHERE ' . $where . 'Date <= :now;');
     foreach ( $filters as $key => $value ) {
 	$statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
     }
@@ -106,8 +106,8 @@ if (array_key_exists('move', $input)) {
     if ($switched_week) {
 	# logic should be - if our new week already has day/week mode entries, stick with that
 	# otherwise historical whole weeks are week mode, present and future are day mode
-	#	    $statement = $db->prepare('SELECT MIN(Date) FROM entries WHERE ' . $and . 'Date >= :start AND Date < :end;');
-	$statement = $db->prepare('SELECT MIN(Date) FROM entries WHERE ' . $and . 'julianday(Date)-julianday(:start) BETWEEN ' . $weekrange . ';');
+	#	    $statement = $db->prepare('SELECT MIN(Date) FROM entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
+	$statement = $db->prepare('SELECT MIN(Date) FROM entries WHERE ' . $where . 'julianday(Date)-julianday(:start) BETWEEN ' . $weekrange . ';');
 	foreach ( $filters as $key => $value ) {
 	    $statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
 	}
@@ -167,8 +167,8 @@ if (array_key_exists('month',$input)) {
 }
 
 
-
-$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $and . 'Date >= :start AND Date < :end;');
+//$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
+$statement = $db ->prepare('select * FROM (SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end) AS range LEFT JOIN (select Hash, Min(Date)>= :start as isNew from entries group by Hash)  AS first ON range.Hash=first.Hash;');
 foreach ( $filters as $key => $value ) {
     $statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
 }

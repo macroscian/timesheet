@@ -36,6 +36,7 @@ error_reporting(E_ALL);
 	   .then(function(data) {
 	       var report = d3.nest().key(d => d.Code).key(d => d.Hash).rollup(v => ({
 		   Hours: d3.sum(v, d=>d.Hours).toFixed(2),
+		   "Free Hour": d3.max(v, d=>d.isNew),
 		   Project: d3.set(v.map(d => d.Project)).values().join(","),
 		   Scientist: d3.set(v.map(d => d.Scientist)).values().join(","),
 		   Lab: d3.set(v.map(d => d.Lab)).values().join(",")

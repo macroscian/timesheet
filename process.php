@@ -48,10 +48,10 @@ error_reporting(E_ALL);
       );
       $people = json_decode(file_get_contents("babs_staff.json"),true);
       $person = $people[$_POST["bioinformatician"]];
-      $url = 'https://hooks.slack.com/services/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';
-      $data = array("text" => "New ticket for {$person['first']} from {$_POST['scientist']}\n {$_POST['title']}");
+      $slackurl = 'https://hooks.slack.com/services/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';
+      $data = array("text" => "New ticket for {$person['first']} from {$_POST['scientist']}\n {$_POST['project']}");
       $postdata = json_encode($data);
-      $ch = curl_init($url);
+      $ch = curl_init($slackurl);
       curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
       curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
       curl_setopt($ch, CURLOPT_POST, 1);
@@ -67,8 +67,8 @@ error_reporting(E_ALL);
 	      mail("{$_POST['bioinformatician']}@crick.ac.uk, {$_POST['lab']}@crick.ac.uk",
 		   "Approval required: {$_POST['project']}" ,
 		   "{$_POST['scientist']} has requested we work on a project {$_POST['project']}. It is necessary for us to seek PI approval before we start work on this, so please visit the following page to allocate a cost-code and initial estimate of time you permit us to spend working on the project.\n\n {$url}approval.php?project=$hash \n\nIf you are not the PI, please reply to this email to let us know, and accept our apologies.",
-		   $result = curl_exec($ch);
-		  $headers);
+		   $headers);
+	      $result = curl_exec($ch);
 	      break;
 	  case "pi": 
 	      echo "<p>Thank you for completing this - an email has been sent to the scientist and the allocated member of BABS, and you will receive a copy.</p>";
