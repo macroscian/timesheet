@@ -11,7 +11,8 @@ deploy:
 	cd $(LIVE) ;\
 	mv make_ts $(TS)/makefile ;\
 	else \
-	git --work-tree=$(DEV) --git-dir=.git checkout -f $(BRANCH) ;\
+	unset GIT_DIR ;\
+	git --work-tree=$(DEV) checkout -f $(BRANCH) ;\
 	cd $(DEV) ;\
 	rm make_ts ;\
 	fi ;\
