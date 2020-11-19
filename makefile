@@ -1,25 +1,3 @@
-LIVE := "/camp/stp/babs/www/kellyg/public_html/LIVE/tickets"
-DEV := "/camp/stp/babs/www/kellyg/public_html/LIVE/tickets_test"
-GIT_DIR := "$(CURDIR)/production.git"
-TSDIR := "/camp/stp/babs/working/time"
-
-deploy:
-	while read oldrev newrev ref ;\
-	do \
-	if [ "$ref" = "refs/heads/live" ];\
-	then \
-		git --work-tree=$(LIVE) --git-dir=$(GIT_DIR) checkout -f live ;\
-		cd $(LIVE) ;\
-		mv make_ts $(TS)/makefile ;\
-	else \
-		git --work-tree=$(DEV) --git-dir=$(GIT_DIR) checkout -f  ;\
-		cd $(DEV) ;\
-		rm make_ts ;\
-	fi ;\
-	done ;\
-	make groups.json ;\
-	rm makefile
-
 
 tickets.db:
 	sqlite tickets.db "CREATE TABLE tickets (\
