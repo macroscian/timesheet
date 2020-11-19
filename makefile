@@ -7,7 +7,7 @@ deploy:
 	BRANCH=`git rev-parse --abbrev-ref HEAD` ;\
 	if [ "$${BRANCH}" = "live" ];\
 	then \
-	git archive $${BRANCH} | tar -x -C $(LIVE) ;\
+	git --work-tree=$(LIVE) --git-dir=.git checkout -f $(BRANCH) ;\
 	cd $(LIVE) ;\
 	mv make_ts $(TS)/makefile ;\
 	else \
