@@ -21,6 +21,7 @@ deploy:
 	rm makefile
 
 
+
 tickets.db:
 	sqlite tickets.db "CREATE TABLE tickets (\
 scientist TEXT NOT NULL,\
