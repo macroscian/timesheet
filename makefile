@@ -11,8 +11,7 @@ deploy:
 	cd $(LIVE) ;\
 	mv make_ts $(TS)/makefile ;\
 	else \
-	GIT_DIR=/camp/stp/babs/working/kellyg/projects/babs/admin/tickets/.git ;\
-	git --work-tree=$(DEV) checkout -f $(BRANCH) ;\
+	git --work-tree=$(DEV) --git-dir=/camp/stp/babs/working/kellyg/projects/babs/admin/tickets/.git checkout -f $(BRANCH) ;\
 	cd $(DEV) ;\
 	rm make_ts ;\
 	fi ;\
