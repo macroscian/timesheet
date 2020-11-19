@@ -38,20 +38,20 @@ $n = isset($input['n'])?$input['n']:'1';
 $fday = "Y-m-d";
 $fweek = "o\WW";
 
-$filters = array_intersect_key(
+$filters = array_intersect_key( # only allow filters to be built with these fields:
     $input,
-    array(
-	'Bioinformatician' => true,
-	'Project' => true,
-	'Scientist' => true,
-	'Lab' => true,
-	'Code' => true,
-	'Hash' => true,
-	'Type' => true
-    )
+				array(
+				    'Bioinformatician' => true,
+				    'Project' => true,
+				    'Scientist' => true,
+				    'Lab' => true,
+				    'Code' => true,
+				    'Hash' => true,
+				    'Type' => true
+				)
 );
 
-$where = "";
+$where = ""; # build prepared filter. OK to finish with AND as we always add another condition on
 foreach ( $filters as $key => $value ) {
     $where .= $key . "=:" . $key . " AND ";
 }
@@ -60,6 +60,8 @@ foreach ( $filters as $key => $value ) {
 # If we didn't specify a timescale, work out from last filled-entered date
 if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  => 3)))==0) {
     if (count($filters)==1 and array_key_exists('Hash', $filters)) {
+	# To handle the "Add project hashed" functionality in record.php, where it
+	# just posts the required hash.
 	$statement = $db->prepare('SELECT * FROM entries WHERE Hash = :hash LIMIT 1;');
 	$statement->bindValue(':hash', $input['Hash'], SQLITE3_TEXT);
 	$result = $statement->execute()->fetchArray(SQLITE3_ASSOC);
@@ -74,7 +76,7 @@ if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  
     $statement->bindValue(':now', $today->format($fday), SQLITE3_TEXT);
     $result = $statement->execute()->fetchArray(SQLITE3_NUM)[0];
     if (!$result) { # no entries, so let's start from monday
-	$dow = $today->format("N") + 0;
+	$dow = $today->format("N") + 0; # monday=1..., so days since sunday
 	$today->sub(new DateInterval("P" . $dow . "D")); # will take us back to sunday, but 'move' increments
 	$input['end'] = $today->format($fday);
 	$input['move'] = "static";
@@ -95,13 +97,13 @@ if (array_key_exists('move', $input)) {
 	    $newstart->sub($oneday); # end was open interval, not included, in original. newstart now last day of old range
 	}
 	$switched_week = inc_weekday($newstart); # ie first workday after old range
-	$weekrange = "0 and 6"; # range of days from now we'll look for entries of any newly enterd week.
-	$delta_day = 4; #  delta between day we enter a new week on, and friday (for detectin if we're entering an empty current week) 4 happens if we enter (1) 'this week' when today is friday (5)
+	$weekrange = "0 and 6"; # if case of newly entered week, we're now pointing at monday. So week extends from now to 6 days hence incl.
+	$delta_day = 7; #  and if 7 days time is less than or equal to today then the whole week is past
     }  else { # so we're going backwards
 	$newstart = new DateTime($input['start']);
 	$switched_week = dec_weekday($newstart);
-	$weekrange = "-4 and 2";
-	$delta_day = 0; #0 happens if we enter (5) 'this week' when today is friday (5)
+	$weekrange = "-4 and 2";# in case of newly entered week, we're now pointing at friday.  Monday is 4 days past, Sunday 2 days hence.
+	$delta_day = 3; # and if 3 days time is less than or equal to today then the whole week is past
     }
     if ($switched_week) {
 	# logic should be - if our new week already has day/week mode entries, stick with that
@@ -114,7 +116,8 @@ if (array_key_exists('move', $input)) {
 	$statement->bindValue(':start', $newstart->format($fday), SQLITE3_TEXT);
 	$result = $statement->execute()->fetchArray(SQLITE3_NUM)[0];
 	if (!$result) { # an empty week
-	    if ($newstart->diff($today)->format("%r%a") >= $delta_day) {# positive if start  in the past.  
+	    $interval = date_diff($newstart, $today)->format("%r%a");
+	    if ($interval >= $delta_day) {# true if week is fully in the past.
 		$input['week']=$newstart->format($fweek);
 		unset($input['day']);
 		unset($input['month']);
