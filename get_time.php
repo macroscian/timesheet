@@ -169,30 +169,41 @@ if (array_key_exists('month',$input)) {
     $end = get_first_monday($date->format("Y-m"));
 }
 
-
-//$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
-$statement = $db ->prepare('select * FROM (SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end) AS range LEFT JOIN (select Hash, Min(Date)>= :start as isNew from entries group by Hash)  AS first ON range.Hash=first.Hash;');
-foreach ( $filters as $key => $value ) {
-    $statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
+if (array_key_exists('year',$input)) {
+    // Monday of the week that includes the month's 1st friday
+    $start = new DateTime($input['year'] . "01-01");
+    $end = new DateTime(($input['year'] + 1) . "01-01");
 }
 
-$statement->bindValue(':start', $start, SQLITE3_TEXT);
-$statement->bindValue(':end', $end, SQLITE3_TEXT);
-$result = $statement->execute();
-
-$input['start'] = $start;
-$input['end']=$end;
-$end = new DateTime($end);
-$end->sub(new DateInterval("P1D")); # return the last day of the current range, for future reporting purposes
-$input['recorddate'] = $end->format($fday);
+if (array-key_exists('todate', $input)) {
+    $start = new DateTime("2000-01-01");
+    $end = new DateTime("tomorrow");
+}
 
 
-$entries = array();
-while($row = $result->fetchArray(SQLITE3_ASSOC)){
-    $entries[] = $row;
-} 
-$db->close();
-unset($db);
-$input['entries'] = $entries;
-echo json_encode($input);
+    //$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
+    $statement = $db ->prepare('select * FROM (SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end) AS range LEFT JOIN (select Hash, Min(Date)>= :start as isNew from entries group by Hash)  AS first ON range.Hash=first.Hash;');
+    foreach ( $filters as $key => $value ) {
+	$statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
+    }
+
+    $statement->bindValue(':start', $start, SQLITE3_TEXT);
+    $statement->bindValue(':end', $end, SQLITE3_TEXT);
+    $result = $statement->execute();
+
+    $input['start'] = $start;
+    $input['end']=$end;
+    $end = new DateTime($end);
+    $end->sub(new DateInterval("P1D")); # return the last day of the current range, for future reporting purposes
+    $input['recorddate'] = $end->format($fday);
+
+
+    $entries = array();
+    while($row = $result->fetchArray(SQLITE3_ASSOC)){
+	$entries[] = $row;
+    } 
+    $db->close();
+    unset($db);
+    $input['entries'] = $entries;
+    echo json_encode($input);
 ?>
