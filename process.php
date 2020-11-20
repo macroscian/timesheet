@@ -25,6 +25,10 @@ error_reporting(E_ALL);
       $sci_name =  ucwords(str_replace(".", " ",strtolower(explode("@", $_POST["scientist"])[0])));
       date_default_timezone_set("Europe/London");
       $date = date("Y-m-d");
+      $lab_email = $_POST["lab"];
+      if (strlen($lab_email) > 7) {
+	  $lab_email=substr_replace($lab_email, "",  6, strlen($lab_email)-7);
+      }
       $record =  file_get_contents("template.txt");
       $record = str_replace("{{project}}", $_POST["project"], $record);
       $record = str_replace("{{bioinformatician}}", $_POST["bioinformatician"], $record);
