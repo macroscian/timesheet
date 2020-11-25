@@ -10,11 +10,7 @@ error_reporting(E_ALL);
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>BABS Timesheet</title>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="https://d3js.org/d3-array.v2.min.js"></script>
-    <script src="https://d3js.org/d3-time-format.v3.min.js"></script>
-    <script src="https://d3js.org/d3-scale.v3.min.js"></script>
-    <script src="https://d3js.org/d3-axis.v2.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
      var urlget = <?php echo json_encode($_GET);  ?>;
     </script>
@@ -34,14 +30,19 @@ error_reporting(E_ALL);
 	     body: JSON.stringify(range)
 	 })
 	   .then(function(data) {
-	       var report = d3.nest().key(d => d.Code).key(d => d.Hash).rollup(v => ({
-		   Hours: d3.sum(v, d=>d.Hours).toFixed(2),
-		   "Free Hour": d3.max(v, d=>d.isNew),
-		   Project: d3.set(v.map(d => d.Project)).values().join(","),
-		   Scientist: d3.set(v.map(d => d.Scientist)).values().join(","),
-		   Lab: d3.set(v.map(d => d.Lab)).values().join(",")
-	       })).entries(data.entries);
-	       report = report.map(c => c.values.map(p => Object.assign({Code:c.key, Project:p.key}, p.value))).flat();
+	       var report = d3.rollup(
+		   data.entries,
+		   v => ({
+		       Hours: d3.sum(v, d=>d.Hours).toFixed(2),
+		       "Free Hour": d3.max(v, d=>d.isNew),
+		       Project: [...new Set(v.map(d => d.Project))].join(","),
+		       Scientist: [...new Set(v.map(d => d.Scientist))].join(","),
+		       Lab: [...new Set(v.map(d => d.Lab))].join(","),
+		       Code: v[0].Code
+		   }),
+		   d => d.Code + "_" + d.Hash 
+	       );
+	       report = Array.from(report, p => p[1]);
 	       var tsv = d3.tsvFormat(report);
 	       d3.select('#download')
 		 .attr('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(tsv))
@@ -50,15 +51,20 @@ error_reporting(E_ALL);
 		   let dat = d3.timeParse("%Y-%m-%d")(proj.Date);
 		   proj.week = d3.timeFormat("%GW%V")(dat);
 	       });
-	       db_entries = d3.nest()
-			      .key(d=>d.Bioinformatician)
-			      .key(d=>d.week)
-			      .rollup(v => ({total:d3.sum(v, d => d.Hours) ,
-					    babs:d3.sum(v.filter(d => d.Lab=="babs"), d => d.Hours)  })
-			      )
-			      .entries(data.entries);
-	       var staff_scale = d3.scaleBand(db_entries.map(d => d.key), [50,750]);
-	       var week_scale = d3.scaleBand(d3.set(db_entries.map(r => r.values.map(c => c.key)).flat()).values().sort(), [200,750]);
+	       db_entries  = d3.rollups(
+		   data.entries,
+		   v =>({total:d3.sum(v, d => d.Hours) ,
+			babs:d3.sum(v.filter(d => d.Lab=="babs"), d => d.Hours),
+			Bioinformatician: v[0].Bioinformatician,
+			week: v[0].week
+		   }),
+		   d => d.Bioinformatician,
+		   d => d.week
+	       );
+	       var staff_scale = d3.scaleBand(db_entries.map(d => d[0]).sort(),
+					      [50,750]);
+	       var week_scale = d3.scaleBand([...new Set(db_entries.map(d => d[1].map( e => e[0])).flat())].sort(),
+					     [200,750]);
 	       var grid = d3.select("#grid")
 			    .append("svg")
 			    .attr("width","800px")
@@ -78,12 +84,12 @@ error_reporting(E_ALL);
 			   .scale(staff_scale));
 
 	       var column = row.selectAll(".square")
-			       .data(d => d.values.map(e => Object.assign(e, {staff:d.key})));
+			       .data(d => d[1]);
 	       column
 		   .enter().append("rect")
 		   .attr("class","square")
-		   .attr("x", d => week_scale(d.key))
-		   .attr("y", d => staff_scale(d.staff))
+		   .attr("x", d => week_scale(d[1].week))
+		   .attr("y", d => staff_scale(d[1].Bioinformatician))
 		   .attr("width", week_scale.step())
 		   .attr("height", staff_scale.step())
 		   .style("fill", "red")
@@ -91,26 +97,26 @@ error_reporting(E_ALL);
 	       column
 		   .enter().append("rect")
 		   .attr("class","project")
-		   .attr("x", d => week_scale(d.key))
-		   .attr("y", d => staff_scale(d.staff))
-		   .attr("width", d => d.value.total * week_scale.step()/36)
+		   .attr("x", d => week_scale(d[1].week))
+		   .attr("y", d => staff_scale(d[1].Bioinformatician))
+		   .attr("width", d => d[1].total * week_scale.step()/36)
 		   .attr("height", staff_scale.step())
 		   .style("fill", "white")
 		   .style("stroke", "white");
 	       column
 		   .enter().append("rect")
 		   .attr("class","project")
-		   .attr("x", d => week_scale(d.key))
-		   .attr("y", d => staff_scale(d.staff))
-		   .attr("width", d => (d.value.total-d.value.babs) * week_scale.step()/36)
+		   .attr("x", d => week_scale(d[1].week))
+		   .attr("y", d => staff_scale(d[1].Bioinformatician))
+		   .attr("width", d => (d[1].total-d[1].babs) * week_scale.step()/36)
 		   .attr("height", staff_scale.step())
 		   .style("fill", "green")
 		   .style("stroke", "green");
 	       column
 		   .enter().append("rect")
 		   .attr("class","square")
-		   .attr("x", d => week_scale(d.key))
-		   .attr("y", d => staff_scale(d.staff))
+		   .attr("x", d => week_scale(d[1].week))
+		   .attr("y", d => staff_scale(d[1].Bioinformatician))
 		   .attr("width", week_scale.step())
 		   .attr("height", staff_scale.step())
 		   .style("fill", "transparent")

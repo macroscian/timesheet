@@ -25,9 +25,9 @@ $ranges = array(
 			"end" => "first day of january this year")
 );
 $entries = array();
-foreach($ranges as $range) {
+foreach($ranges as $key => $range) {
     $qMarks = str_repeat('?,', count($hashes) - 1) . '?';
-    $sth = $db->prepare("SELECT Hash, SUM(hours) as hours FROM entries WHERE (Bioinformatician=?) AND and Date>=:start AND date<:end AND Hash IN ($qMarks) GROUP BY Hash;");
+    $sth = $db->prepare("SELECT Hash, SUM(hours) as hours FROM entries WHERE (Bioinformatician=?) AND Date>=:start AND date<:end AND Hash IN ($qMarks) GROUP BY Hash;");
     $sth->bindValue(1, $input['id'], SQLITE3_TEXT);
     $sth->bindValue(2, date('Y-m-d', strtotime($range['start'])), SQLITE3_TEXT);
     $sth->bindValue(3, date('Y-m-d', strtotime($range['end'])), SQLITE3_TEXT);
@@ -39,6 +39,7 @@ foreach($ranges as $range) {
     $result = $sth->execute();
 
     while($row = $result->fetchArray(SQLITE3_ASSOC)){
+	$row['range'] = $key;
 	$entries[] = $row;
     } 
 }

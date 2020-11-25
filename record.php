@@ -10,9 +10,7 @@ error_reporting(E_ALL);
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>BABS Timesheet</title>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="https://d3js.org/d3-array.v2.min.js"></script>
-    <script src="https://d3js.org/d3-time-format.v3.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
      var unsaved;
      var active_projects=<?php 
@@ -133,7 +131,10 @@ error_reporting(E_ALL);
       
       <button type="button" class="btn btn-primary" onClick="submit()">Submit</button>
     </div>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <script>
+     var tips=[];
      var hours_per_day = 36.0/5;
      var db_state={};
      var detail_week=""; // slot to remember which week we want to split into days
@@ -182,17 +183,29 @@ error_reporting(E_ALL);
 	     proj.default_time=proj.Hours;
 	 });
 	 active_projects=db_entries.concat(active_projects);
+	 
 	 active_projects.forEach(proj => {
-	     let ind = hours.findIndex(h => h.Hash==proj.Hash);
-	     proj.spent = (ind == -1)?0:(hours[ind].hours);
+	     let hr = hours.filter(h => h.Hash==proj.Hash);
+	     if (hr.length == 0) {
+		 proj.spent = 0
+	     } else {
+		 let tbl = Object.fromEntries(hr.map(d => [d.range, d.hours]));
+		 tbl = Object.assign({"This week":0, "Last week":0, "This month":0, "Last month":0, "This year":0, "Last year":0}, tbl);
+		 proj.spent = tbl.All;
+		 proj.tooltip = `Week=${tbl["This week"]} (${tbl["Last week"]})<br>Month=${tbl["This month"]} (${tbl["Last month"]})<br>Year=${tbl["This year"]} (${tbl["Last year"]})`;
+	     }
 	 });
-	 update_rows(active_projects);
+	 update_rows();
 	 toggle_generic();
      }
-     function update_rows(data) {
+     function update_rows() {
 	 var rows = d3.select("#projects").selectAll("tr").data(active_projects, d => d.Hash);
 	 rows.enter().append("tr")
-	     .html(generate_row_from_data);
+	     .html(generate_row_from_data)
+	     .each(function(d,i) {
+		 tips[d.Hash] = tippy(d3.select(this).select(".spent").node(), {content: d.tooltip,allowHTML: true});
+	     });
+	 rows.each(function(d,i) {tips[d.Hash].setContent(d.tooltip);});
 	 rows.exit().remove();
 	 rows.classed("text-muted", d => !d.activated);
 	 d3.selectAll(".hour_select").on("change", handle_select);
@@ -218,7 +231,7 @@ error_reporting(E_ALL);
 		   hash_row.Note = "";
 		   hash_row.spent=0;
 		   active_projects.push(hash_row);
-		   update_rows(active_projects);
+		   update_rows();
 	       }
 	   });
      }
@@ -276,7 +289,7 @@ error_reporting(E_ALL);
 		    "</td><td>" + d.Scientist +
 		    "</td><td>" + d.Lab +
 		    '</td><td><input size="5" type="number" min="0" max="168" step="' + (0.1) +'" class="hour hour_input" value="' + d.Hours.toFixed(1) + '"' + (d.activated?"":"disabled") +  '></input> ' +
-		    '<span class="spent">' + d.spent.toFixed(1) + '</span>' + 
+		    '<span class="spent" >' + d.spent.toFixed(1) + '</span>' + 
 		    '<span class="fixed" style="visibility:' + ((d.fixed & d.activated)?"visible":"hidden") + '">&#128274</span>' + 
 		    '</td><td><input class="hour_note" type="textarea" ' + (d.activated?"":"disabled") + 'value="' +d.Note + '"></td>';
 	 return(html);
@@ -317,7 +330,7 @@ error_reporting(E_ALL);
 	 rows.select("td span.spent")
 	     .text(d => d.spent.toFixed(1));
 	 rows.select("td input.hour_note")
-	  .property("value", d => d.Note)
+	     .property("value", d => d.Note)
 	     .attr("disabled", d => d.activated?null:"true");
 	 rows.select("td span.fixed").style("visibility", d => (d.fixed & d.activated)?"visible":"hidden");
 	 let total_hours = rows.data().reduce((tot,cur) => tot + (cur.activated?cur.Hours:0),0)
