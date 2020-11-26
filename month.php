@@ -29,9 +29,9 @@ error_reporting(E_ALL);
 	     headers: { 'Content-Type': 'application/json'},
 	     body: JSON.stringify(range)
 	 })
-	   .then(function(data) {
+	   .then(function(dbase) {
 	       var report = d3.rollup(
-		   data.entries,
+		   dbase.entries,
 		   v => ({
 		       Hours: d3.sum(v, d=>d.Hours).toFixed(2),
 		       "Free Hour": d3.max(v, d=>d.isNew),
@@ -42,17 +42,17 @@ error_reporting(E_ALL);
 		   }),
 		   d => d.Code + "_" + d.Hash 
 	       );
-	       report = Array.from(report, p => p[1]);
+	       report = [...report.values()];
 	       var tsv = d3.tsvFormat(report);
 	       d3.select('#download')
 		 .attr('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(tsv))
 		 .attr('download', range.month);
-	       data.entries.forEach(proj => {
+	       dbase.entries.forEach(proj => {
 		   let dat = d3.timeParse("%Y-%m-%d")(proj.Date);
 		   proj.week = d3.timeFormat("%GW%V")(dat);
 	       });
-	       db_entries  = d3.rollups(
-		   data.entries,
+	       staffXweek  = d3.rollup(
+		   dbase.entries,
 		   v =>({total:d3.sum(v, d => d.Hours) ,
 			babs:d3.sum(v.filter(d => d.Lab=="babs"), d => d.Hours),
 			Bioinformatician: v[0].Bioinformatician,
@@ -61,16 +61,16 @@ error_reporting(E_ALL);
 		   d => d.Bioinformatician,
 		   d => d.week
 	       );
-	       var staff_scale = d3.scaleBand(db_entries.map(d => d[0]).sort(),
+	       var staff_scale = d3.scaleBand([...staffXweek.keys()].sort(),
 					      [50,750]);
-	       var week_scale = d3.scaleBand([...new Set(db_entries.map(d => d[1].map( e => e[0])).flat())].sort(),
+	       var week_scale = d3.scaleBand([...new Set([...staffXweek.values()].map(d => [...d.keys()]).flat())].sort(),
 					     [200,750]);
 	       var grid = d3.select("#grid")
 			    .append("svg")
 			    .attr("width","800px")
 			    .attr("height","800px");
 	       var row = grid.selectAll(".row")
-			     .data(db_entries)
+			     .data([...staffXweek.values()].map(d => [...d.values()]))
 			     .enter().append("g")
 			     .attr("class", "row");
 	       grid.append("g")
@@ -84,12 +84,12 @@ error_reporting(E_ALL);
 			   .scale(staff_scale));
 
 	       var column = row.selectAll(".square")
-			       .data(d => d[1]);
+			       .data(d => d);
 	       column
 		   .enter().append("rect")
 		   .attr("class","square")
-		   .attr("x", d => week_scale(d[1].week))
-		   .attr("y", d => staff_scale(d[1].Bioinformatician))
+		   .attr("x", d => week_scale(d.week))
+		   .attr("y", d => staff_scale(d.Bioinformatician))
 		   .attr("width", week_scale.step())
 		   .attr("height", staff_scale.step())
 		   .style("fill", "red")
@@ -97,26 +97,26 @@ error_reporting(E_ALL);
 	       column
 		   .enter().append("rect")
 		   .attr("class","project")
-		   .attr("x", d => week_scale(d[1].week))
-		   .attr("y", d => staff_scale(d[1].Bioinformatician))
-		   .attr("width", d => d[1].total * week_scale.step()/36)
+		   .attr("x", d => week_scale(d.week))
+		   .attr("y", d => staff_scale(d.Bioinformatician))
+		   .attr("width", d => d.total * week_scale.step()/36)
 		   .attr("height", staff_scale.step())
 		   .style("fill", "white")
 		   .style("stroke", "white");
 	       column
 		   .enter().append("rect")
 		   .attr("class","project")
-		   .attr("x", d => week_scale(d[1].week))
-		   .attr("y", d => staff_scale(d[1].Bioinformatician))
-		   .attr("width", d => (d[1].total-d[1].babs) * week_scale.step()/36)
+		   .attr("x", d => week_scale(d.week))
+		   .attr("y", d => staff_scale(d.Bioinformatician))
+		   .attr("width", d => (d.total-d.babs) * week_scale.step()/36)
 		   .attr("height", staff_scale.step())
 		   .style("fill", "green")
 		   .style("stroke", "green");
 	       column
 		   .enter().append("rect")
 		   .attr("class","square")
-		   .attr("x", d => week_scale(d[1].week))
-		   .attr("y", d => staff_scale(d[1].Bioinformatician))
+		   .attr("x", d => week_scale(d.week))
+		   .attr("y", d => staff_scale(d.Bioinformatician))
 		   .attr("width", week_scale.step())
 		   .attr("height", staff_scale.step())
 		   .style("fill", "transparent")

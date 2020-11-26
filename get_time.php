@@ -58,7 +58,7 @@ foreach ( $filters as $key => $value ) {
 
 
 # If we didn't specify a timescale, work out from last filled-entered date
-if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  => 3)))==0) {
+if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  => 3, 'todate' => 3)))==0) {
     if (count($filters)==1 and array_key_exists('Hash', $filters)) {
 	# To handle the "Add project hashed" functionality in record.php, where it
 	# just posts the required hash.
@@ -175,35 +175,37 @@ if (array_key_exists('year',$input)) {
     $end = new DateTime(($input['year'] + 1) . "01-01");
 }
 
-if (array-key_exists('todate', $input)) {
+if (array_key_exists('todate', $input)) {
     $start = new DateTime("2000-01-01");
+    $start = $start->format($fday);
     $end = new DateTime("tomorrow");
+    $end = $end->format($fday);
 }
 
 
-    //$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
-    $statement = $db ->prepare('select * FROM (SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end) AS range LEFT JOIN (select Hash, Min(Date)>= :start as isNew from entries group by Hash)  AS first ON range.Hash=first.Hash;');
-    foreach ( $filters as $key => $value ) {
-	$statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
-    }
+//$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
+$statement = $db ->prepare('select * FROM (SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end) AS range LEFT JOIN (select Hash, Min(Date)>= :start as isNew from entries group by Hash)  AS first ON range.Hash=first.Hash;');
+foreach ( $filters as $key => $value ) {
+    $statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
+}
 
-    $statement->bindValue(':start', $start, SQLITE3_TEXT);
-    $statement->bindValue(':end', $end, SQLITE3_TEXT);
-    $result = $statement->execute();
+$statement->bindValue(':start', $start, SQLITE3_TEXT);
+$statement->bindValue(':end', $end, SQLITE3_TEXT);
+$result = $statement->execute();
 
-    $input['start'] = $start;
-    $input['end']=$end;
-    $end = new DateTime($end);
-    $end->sub(new DateInterval("P1D")); # return the last day of the current range, for future reporting purposes
-    $input['recorddate'] = $end->format($fday);
+$input['start'] = $start;
+$input['end']=$end;
+$end = new DateTime($end);
+$end->sub(new DateInterval("P1D")); # return the last day of the current range, for future reporting purposes
+$input['recorddate'] = $end->format($fday);
 
 
-    $entries = array();
-    while($row = $result->fetchArray(SQLITE3_ASSOC)){
-	$entries[] = $row;
-    } 
-    $db->close();
-    unset($db);
-    $input['entries'] = $entries;
-    echo json_encode($input);
+$entries = array();
+while($row = $result->fetchArray(SQLITE3_ASSOC)){
+    $entries[] = $row;
+} 
+$db->close();
+unset($db);
+$input['entries'] = $entries;
+echo json_encode($input);
 ?>

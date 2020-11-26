@@ -81,7 +81,7 @@ error_reporting(E_ALL);
 	 proj.Note=proj.Note || "";
 	 proj.orig_note=proj.Note || "";
 	 return(proj);});
-     const base_projects = JSON.parse(JSON.stringify(active_projects)); 
+     const base_projects = active_projects.map(obj => Object.assign({}, obj));
     </script>
   </head>
   <body>
@@ -147,33 +147,25 @@ error_reporting(E_ALL);
 	     headers: { 'Content-Type': 'application/json'},
 	     body: JSON.stringify(range)
 	 })
-	   .then(hours_so_far);
+	   .then(update_projects);
      }
-     function hours_so_far(data) {
-	 var hashes={hashes:active_projects.map(x => x.Hash), id:"<?php echo $_GET["id"]; ?>"};
-	 d3.json('project_hours.php', {
-	     method: 'POST',
-	     headers: { 'Content-Type': 'application/json'},
-	     body: JSON.stringify(hashes)
-	 }).then(d => update_view(data, d));
-     }
-     function update_view(data, hours) {
+     function update_projects(data) { // process database entries of recorded time
 	 db_state = data;
 	 detail_week = (db_state.hasOwnProperty('day'))?d3.timeFormat('%GW%V')(new Date(db_state.start)):detail_week;
-	 let db_entries = Array.from(d3.rollup(data.entries, aggregate_projs, d => d.Hash), ([key, value]) => value);
+	 let db_entries = [...d3.rollup(data.entries, aggregate_projs, d => d.Hash).values()];
 	 delete db_state.entries;
 	 d3.select("#catchup").html(parse_time_label(db_state));
 	 d3.select("#catchuphours").text(db_state.hours_needed);
-	 active_projects = JSON.parse(JSON.stringify(base_projects)); 
+	 active_projects = base_projects.map(obj => Object.assign({}, obj)); // revert to just the default projects
 	 db_entries.forEach(proj => {
 	     let ind = active_projects.findIndex(p => p.Hash==proj.Hash);
-	     if (ind != -1) {
-		 let my_hours = proj.Hours;
+	     if (ind != -1) { //if previous timerecording is a default project
+		 let my_hours = proj.Hours; // don't overwrite these fields
 		 let my_note = proj.Note;
-		 Object.assign(proj, active_projects[ind]);
+		 Object.assign(proj, active_projects[ind]); // pull in info from the default
 		 proj.Hours = my_hours;
 		 proj.Note = my_note;
-		 active_projects.splice(ind, 1);
+		 active_projects.splice(ind, 1); // and remove the default entry
 	     }
 	     proj.activated=true;
 	     proj.orig_activated = proj.activated;
@@ -183,13 +175,22 @@ error_reporting(E_ALL);
 	     proj.default_time=proj.Hours;
 	 });
 	 active_projects=db_entries.concat(active_projects);
-	 
+	 // Get each project's history
+	 var hashes={hashes:active_projects.map(x => x.Hash), id:"<?php echo $_GET["id"]; ?>"};
+	 d3.json('project_hours.php', {
+	     method: 'POST',
+	     headers: { 'Content-Type': 'application/json'},
+	     body: JSON.stringify(hashes)
+	 }).then(d => update_view(data, d));
+     }
+     function update_view(data, hours) {
 	 active_projects.forEach(proj => {
 	     let hr = hours.filter(h => h.Hash==proj.Hash);
 	     if (hr.length == 0) {
-		 proj.spent = 0
+		 proj.spent = 0;
+		 proj.tooltip = "---";
 	     } else {
-		 let tbl = Object.fromEntries(hr.map(d => [d.range, d.hours]));
+		 let tbl = Object.fromEntries(hr.map(d => [d.range, d.hours.toFixed(1)]));
 		 tbl = Object.assign({"This week":0, "Last week":0, "This month":0, "Last month":0, "This year":0, "Last year":0}, tbl);
 		 proj.spent = tbl.All;
 		 proj.tooltip = `Week=${tbl["This week"]} (${tbl["Last week"]})<br>Month=${tbl["This month"]} (${tbl["Last month"]})<br>Year=${tbl["This year"]} (${tbl["Last year"]})`;
@@ -198,6 +199,7 @@ error_reporting(E_ALL);
 	 update_rows();
 	 toggle_generic();
      }
+     
      function update_rows() {
 	 var rows = d3.select("#projects").selectAll("tr").data(active_projects, d => d.Hash);
 	 rows.enter().append("tr")
@@ -289,7 +291,7 @@ error_reporting(E_ALL);
 		    "</td><td>" + d.Scientist +
 		    "</td><td>" + d.Lab +
 		    '</td><td><input size="5" type="number" min="0" max="168" step="' + (0.1) +'" class="hour hour_input" value="' + d.Hours.toFixed(1) + '"' + (d.activated?"":"disabled") +  '></input> ' +
-		    '<span class="spent" >' + d.spent.toFixed(1) + '</span>' + 
+		    '<span class="spent" >' + d.spent + '</span>' + 
 		    '<span class="fixed" style="visibility:' + ((d.fixed & d.activated)?"visible":"hidden") + '">&#128274</span>' + 
 		    '</td><td><input class="hour_note" type="textarea" ' + (d.activated?"":"disabled") + 'value="' +d.Note + '"></td>';
 	 return(html);
@@ -328,7 +330,7 @@ error_reporting(E_ALL);
 	     .property("value", d => d.Hours.toFixed(1))
 	     .attr("disabled", d => d.activated?null:"true");
 	 rows.select("td span.spent")
-	     .text(d => d.spent.toFixed(1));
+	     .text(d => d.spent);
 	 rows.select("td input.hour_note")
 	     .property("value", d => d.Note)
 	     .attr("disabled", d => d.activated?null:"true");
