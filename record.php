@@ -81,7 +81,7 @@ error_reporting(E_ALL);
 	 proj.Note=proj.Note || "";
 	 proj.orig_note=proj.Note || "";
 	 return(proj);});
-     const base_projects = active_projects.map(obj => Object.assign({}, obj));
+     const base_projects = JSON.parse(JSON.stringify(active_projects)); 
     </script>
   </head>
   <body>
@@ -156,7 +156,7 @@ error_reporting(E_ALL);
 	 delete db_state.entries;
 	 d3.select("#catchup").html(parse_time_label(db_state));
 	 d3.select("#catchuphours").text(db_state.hours_needed);
-	 active_projects = base_projects.map(obj => Object.assign({}, obj)); // revert to just the default projects
+	 active_projects = JSON.parse(JSON.stringify(base_projects)); 
 	 db_entries.forEach(proj => {
 	     let ind = active_projects.findIndex(p => p.Hash==proj.Hash);
 	     if (ind != -1) { //if previous timerecording is a default project
@@ -181,9 +181,9 @@ error_reporting(E_ALL);
 	     method: 'POST',
 	     headers: { 'Content-Type': 'application/json'},
 	     body: JSON.stringify(hashes)
-	 }).then(d => update_view(data, d));
+	 }).then(update_view)
      }
-     function update_view(data, hours) {
+     function update_view(hours) {
 	 active_projects.forEach(proj => {
 	     let hr = hours.filter(h => h.Hash==proj.Hash);
 	     if (hr.length == 0) {
@@ -212,7 +212,7 @@ error_reporting(E_ALL);
 	 rows.classed("text-muted", d => !d.activated);
 	 d3.selectAll(".hour_select").on("change", handle_select);
 	 d3.selectAll(".hour_input").on("change", handle_input);
-	 d3.selectAll(".hour_increment").on("click", handle_increment);
+//	 d3.selectAll(".hour_increment").on("click", handle_increment); TODO as v6 of d3 doesn't pass ind
 	 d3.selectAll(".hour_note").on("change", handle_note);
 	 recalc();
 	 d3.select("#nav").classed("bg-warning", false);
@@ -296,24 +296,25 @@ error_reporting(E_ALL);
 		    '</td><td><input class="hour_note" type="textarea" ' + (d.activated?"":"disabled") + 'value="' +d.Note + '"></td>';
 	 return(html);
      }
-     function handle_select(dat, ind) {
+     function handle_select(ev,dat) {
 	 dat.activated = d3.select(this).property("checked");
 	 dat.fixed = !!dat.default_time;
 	 dat.Hours = dat.default_time || 0;
 	 recalc();
      }
-     function handle_input(dat, ind) {
+     function handle_input(ev,dat) {
 	 dat.fixed = true;
 	 dat.Hours = +this.value;
 	 recalc();
      }
-     function handle_increment(dat, ind) {
-	 dati=d3.select("#projects").selectAll("tr").data()[ind]
+     function handle_increment(ev, dat) {
+	 const ind = ev.indexOf(this);
+	 dati=d3.select("#projects").selectAll("tr").data()[ind];
 	 dati.Hours = dati.Hours + (dati.default_time || 1) * (d3.event.shiftKey?-1:1);
 	 dati.fixed = true;
 	 recalc();
      }
-     function handle_note(dat, ind) {
+     function handle_note(ev, dat) {
 	 dat.Note = this.value;
 	 recalc()
      }
