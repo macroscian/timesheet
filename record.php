@@ -208,7 +208,7 @@ error_reporting(E_ALL);
 		 tips[d.Hash] = tippy(d3.select(this).select(".spent").node(), {content: d.tooltip,allowHTML: true});
 	     });
 	 rows.each(function(d,i) {tips[d.Hash].setContent(d.tooltip);});
-	 rows.exit().remove();
+	 rows.exit().remove(); // TODO - will leave orphaned elements in 'tips'.  Not serious as they may get reused anyway.
 	 rows.classed("text-muted", d => !d.activated);
 	 d3.selectAll(".hour_select").on("change", handle_select);
 	 d3.selectAll(".hour_input").on("change", handle_input);
