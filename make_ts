@@ -1,4 +1,4 @@
-tsmake := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+tsmake := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 include $(repos_config)
 trim := $(subst /camp/stp/babs/working/,,$(CURDIR))
 dirlist := $(subst /, ,$(trim))
@@ -22,7 +22,12 @@ ntickets := $(words $(tickets))
 me := $(shell whoami)
 babsfield = $(shell awk '$$1 == "$(1):"{print$$2}' .babs)
 ticketfield = $(shell awk '$$1 == "$(1):"{print$$2}' $(tickets))
-generic = Annual_Leave Bank_Holiday Training Learning develop Admin 
+
+generic = Annual_Leave.01 Bank_Holiday.01 \
+Training.02 \
+Learning.03 Seminar.03 \
+devel.04 \
+Admin.05 Lab_Meeting.05 Staff_Management.05 
 
 define yaml
 -
@@ -58,15 +63,20 @@ init: .babs refresh
 	then \
 	  echo "Directory already contains a .babs file.  Please remove it first" ;\
 	else \
+	  if ! grep -q \"$(type)\" /camp/stp/babs/working/kellyg/projects/babs/admin/tickets/types.json; then \
+	  echo "'Type'  is mandatory, must be one of:";\
+	  cat /camp/stp/babs/working/kellyg/projects/babs/admin/tickets/types.json | awk '$$2 == ":" {print $$1;}' ;\
+	  exit 1;\
+	  fi ;\
 	  echo "$$yaml" > .babs ;\
 	fi
 
 generic: $(generic)
 
 $(generic):
-	mkdir -p /camp/stp/babs/working/kellyg/projects/babs/.$@ && cd "$$_" ;\
+	mkdir -p /camp/stp/babs/working/kellyg/projects/.babs/$(basename $@) && cd "$$_" ;\
 	[ ! -f .babs ] || mv .babs .babs.old ;\
-	make -f $(tsmake) .babs code=$@ project="$(subst _, ,$@)" myhash=$@
+	make -f $(tsmake) .babs code=babs$(suffix $@) project="$(subst _, ,$(basename $@))" myhash=$(basename $@)
 
 	    
 
@@ -104,8 +114,15 @@ increment:   ## Add 'inc=h' to increase the time-estimate for current project by
 	fi
 
 refresh:     ## Update website with any changes (usually done for you by init, grab and mkdir)
-	cat $$(find -L /camp/stp/babs/working/$(USER)/[pP]rojects -maxdepth 4 -mindepth 4 -type f -name .babs 2>/dev/null)  >/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml
-	cat $$(find -L /camp/stp/babs/working/$(USER)/[pP]rojects/babs -maxdepth 2 -mindepth 2 -type f -name .babs 2>/dev/null)  >>/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml
+	find -L /camp/stp/babs/working/$(USER)/[pP]rojects -maxdepth 4 -mindepth 4 -type f -name .babs  -exec cat {} \; 2>/dev/null  >/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml
+	if test -d /camp/stp/babs/working/$(USER)/[pP]rojects/babs ;\
+	then \
+	find -L /camp/stp/babs/working/$(USER)/[pP]rojects/babs -maxdepth 2 -mindepth 2 -type f -name .babs -exec cat {} \; 2>/dev/null >>/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml ;\
+	fi
+	if test -f /camp/stp/babs/working/$(USER)/[pP]rojects/.babs ;\
+	then \
+	cat /camp/stp/babs/working/$(USER)/[pP]rojects/.babs   >>/camp/stp/babs/www/kellyg/public_html/LIVE/tickets/yml/$(USER).yml ;\
+	fi 
 
 toggle:      ## Toggle whether current project is active, and refresh.
 toggle: toggle_pre refresh
