@@ -23,7 +23,11 @@ foreach($input['entries'] as $php_row) {
     $insert->bindValue(':Lab', $php_row['Lab'], SQLITE3_TEXT);
     $insert->bindValue(':Code', $php_row['Code'], SQLITE3_INTEGER);
     $insert->bindValue(':Hash', $php_row['Hash'], SQLITE3_TEXT);
-    $insert->bindValue(':Type', $php_row['Type'], SQLITE3_TEXT);
+    if ($php_row['Type']=="scrnaeq") { # fix old typo
+	$insert->bindValue(':Type', "scrnaseq", SQLITE3_TEXT);
+    } else {
+	$insert->bindValue(':Type', $php_row['Type'], SQLITE3_TEXT);
+    }
     $insert->bindValue(':Hours', $php_row['Hours'], SQLITE3_FLOAT);
     $insert->bindValue(':Note', $php_row['Note'], SQLITE3_TEXT);
     $insert->execute();

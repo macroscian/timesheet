@@ -1,20 +1,11 @@
 {
-    "rnaseq" : {
-     "type":"RNASeq (bulk)"
-    },
-    "scrnaeq" : {
-     "type":"Single Cell RNASeq"
-    },
-    "chipseq" : {
-     "type":"Chipseq"
-    },
-    "seq" : {
-     "type": "Other Sequencing"
-    },
-    "bioinf" : {
-     "type": "Other Bioinformatics"
-    },
-    "stats" : {
-     "type": "Statistics"
-    }
+    "rnaseq" : {"type":"RNASeq (bulk)" },
+    "scrnaseq" : { "type":"Single Cell RNASeq"},
+    "chipseq" : { "type":"Chipseq"},
+    "atacseq" : { "type":"ATAC Seq"},
+    "exomeseq" : {"type":"Exome-Seq"},
+    "seq" : {"type": "Other Sequencing"},
+    "bioinf" : {"type": "Other Bioinformatics"},
+    "stats" : {"type": "Statistics"},
+    "babs" : {"type": "Internal"}
 }
