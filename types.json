@@ -4,6 +4,7 @@
     "chipseq" : { "type":"Chipseq"},
     "atacseq" : { "type":"ATAC Seq"},
     "exomeseq" : {"type":"Exome-Seq"},
+    "wgs" : {"type":"Whole-Genome Seq"},
     "seq" : {"type": "Other Sequencing"},
     "bioinf" : {"type": "Other Bioinformatics"},
     "stats" : {"type": "Statistics"},

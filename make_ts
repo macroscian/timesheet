@@ -64,7 +64,7 @@ init: .babs refresh
 	  echo "Directory already contains a .babs file.  Please remove it first" ;\
 	else \
 	  if ! grep -q \"$(type)\" /camp/stp/babs/working/kellyg/projects/babs/admin/tickets/types.json; then \
-	  echo "'Type'  is mandatory, must be one of:";\
+	  echo "'type'  is mandatory, must be one of:";\
 	  cat /camp/stp/babs/working/kellyg/projects/babs/admin/tickets/types.json | awk '$$2 == ":" {print $$1;}' ;\
 	  exit 1;\
 	  fi ;\

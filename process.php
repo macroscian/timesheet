@@ -51,7 +51,11 @@ error_reporting(E_ALL);
 	  'X-Mailer' => 'PHP/' . phpversion()
       );
       $people = json_decode(file_get_contents("babs_staff.json"),true);
-      $person = $people[$_POST["bioinformatician"]];
+      if (array_key_exists($_POST["bioinformatician"], $people)){
+	  $person = $people[$_POST["bioinformatician"]];
+      } else {
+	  $person = $_POST["bioinformatician"];
+      }
       $slackurl = 'https://hooks.slack.com/services/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';
       $data = array("text" => "New ticket for {$person['first']} from {$_POST['scientist']}\n {$_POST['project']}");
       $postdata = json_encode($data);
