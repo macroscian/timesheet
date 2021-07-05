@@ -1,22 +1,3 @@
-## BABS Ticketing and Timesheet system
-
-Both the ticketing and time-recording system have ended up in the same
-repository. This is a bit of an historical accident, but seems to work
-ok.
-
-### Ticketing
-
-The [index.php](index.php) is the interface that sends form data to
-[process.php](process.php). The former form reads the `json` files
-that define the options for which lab it is for (auto-generated via
-the makefile), and project type and bioinformatician (edited
-manually).
-
-On submission, the form values get inserted into the
-[template](template.txt) which gets saved in a web directory
-accessible to the timesheet system via commands implemented in
-[make_ts](make_ts).
-
 ### Timesheets
 
 Timesheets rely on a `.babs` file in your
