@@ -2,11 +2,11 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-
+include 'config.php';
 $input = json_decode(file_get_contents('php://input'),true);
 $hashes = $input['hashes'];
 
-$db = new SQLite3('/camp/stp/babs/www/kellyg/timesheets.db');
+$db = new SQLite3($config["db"]);
 
 $ranges = array(
     "All" => array("start" => "first day of january 2000",
@@ -25,6 +25,7 @@ $ranges = array(
 			"end" => "first day of january this year")
 );
 $entries = array();
+
 foreach($ranges as $key => $range) {
     $qMarks = str_repeat('?,', count($hashes) - 1) . '?';
     $sth = $db->prepare("SELECT Hash, SUM(hours) as hours FROM entries WHERE (Bioinformatician=?) AND Date>=:start AND date<:end AND Hash IN ($qMarks) GROUP BY Hash;");
@@ -43,9 +44,6 @@ foreach($ranges as $key => $range) {
 	$entries[] = $row;
     } 
 }
-
-
-
 
 $db->close();
 unset($db);

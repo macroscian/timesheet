@@ -2,7 +2,7 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-
+include 'config.php';
 date_default_timezone_set('Europe/London');
 
 function get_first_monday($ym) {
@@ -33,7 +33,7 @@ function dec_weekday(&$date) {
 
 
 $input = json_decode(file_get_contents('php://input'),true);
-$db = new SQLite3('/camp/stp/babs/www/kellyg/timesheets.db');
+$db = new SQLite3($config["db"]);
 $n = isset($input['n'])?$input['n']:'1';
 $fday = "Y-m-d";
 $fweek = "o\WW";

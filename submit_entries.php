@@ -2,8 +2,8 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
-
-$db = new SQLite3('/camp/stp/babs/www/kellyg/timesheets.db');
+include 'config.php';
+$db = new SQLite3($config["db"]);
 $input = json_decode(file_get_contents('php://input'),true);
 
 $delete = $db->prepare('DELETE FROM entries WHERE Date = :start AND Bioinformatician=:Bioinformatician;');
