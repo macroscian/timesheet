@@ -17,25 +17,41 @@
 	
 	<div class="form-group row">
 	  <label for="scientist"  class="col-sm-2 form-label"><?php echo array_key_exists('project',$_GET)?"Applicant's":"Your"; ?> email</label>
-	  <input type="email" class="form-control col-sm-6" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk" required>
-	  <small id="emailHelp" class="form-text text-muted col-sm-12">The email address of the person we will primarily dealing with.</small>
+	  <?php
+	  if (isset($_GET['sci'])) {
+	      echo  "<input readonly tabindex='-1' type='text' id='scientist' name='scientist' value='" . $_GET['sci'] . "'>";
+	  } else {
+	  ?>
+	    <input type="email" class="form-control col-sm-6" name="scientist" id="scientist" aria-describedby="emailHelp" placeholder="first.second@crick.ac.uk" required>
+	    <small id="emailHelp" class="form-text text-muted col-sm-12">The email address of the person we will primarily dealing with.</small>
+	  <?php
+	  }
+	  ?>
 	</div>
-
+	
 	<div class="form-group row">
 	  <label for="lab" class="col-sm-2 form-label"><?php echo array_key_exists('project',$_GET)?"Applicant's":"Your"; ?> Lab</label>
-	  <select class="form-control col-sm-3" id="lab" name="lab" required>
-	    <option disabled selected>Select a Lab/STP.</option>
-	    <optgroup label="Research Groups" id="lablist">
-	    </optgroup>
-	    <optgroup label="STPs" id="stplist">
-	    </optgroup>
-	    <optgroup label="Operations" id="opslist">
-	    </optgroup>
-	  </select>
+	  <?php
+	  if (isset($_GET['lab'])) {
+	      echo  "<input readonly tabindex='-1' type='text' id='lab' name='lab' value='" . $_GET['lab'] . "'>";
+	  } else {
+	  ?>
+	    <select class="form-control col-sm-3" id="lab" name="lab" required>
+	      <option disabled selected>Select a Lab/STP.</option>
+	      <optgroup label="Research Groups" id="lablist">
+	      </optgroup>
+	      <optgroup label="STPs" id="stplist">
+	      </optgroup>
+	      <optgroup label="Operations" id="opslist">
+	      </optgroup>
+	    </select>
+	  <?php
+	  }
+	  ?>
 	</div>
 
 	<div class="form-group row">
-	  <label for="project" class="col-sm-2 form-label">Short Title</label>
+	  <label for="project" class="col-sm-2 form-label">Project Title</label>
 	  <input type="text" class="form-control col-sm-6" id="project" aria-describedby="projectlHelp" placeholder="Short descriptive title" name="project" minlength="5" maxlength="50" required>
 	  <small id="projectHelp" class="form-text text-muted col-sm-12">The shortest amount of text that will help you, your PI, the bioinformatician recognise the project. Good examples would be 'Power calc for MRC application' or 'RNASeq of CD4+ cells'; bad examples are 'Stats question' or 'CD4 cells'</small>
 	</div>
@@ -43,7 +59,7 @@
 	<div class="form-group row">
 	  <label for="code" class="col-sm-2 form-label">Cost Code</label>
 	  <input type="text" pattern="[0-9]{5}" class="form-control col-sm-3" id="code" aria-describedby="codeHelp" name="code" required>
-	  <small id="codeHelp" class="form-text text-muted col-sm-7">Your PI should be able to provide a code so that STPs can keep track of where their time is spent.</small>
+	  <small id="codeHelp" class="form-text text-muted col-sm-7">Your PI should be able to provide a five digit code so that STPs can keep track of where their time is spent.</small>
 	</div>
 	<input type="hidden" id="who" name="who" value="scipi">
 
@@ -53,25 +69,42 @@
 	  <small id="estimateHelp" class="form-text text-muted col-sm-7">A very rough estimate.  If it's just to book in for a brief initial chat, put 1.</small>
 	</div>
 
+	
 	<div class="form-group row">
 	  <label for="type" class="col-sm-2 form-label">Project Type</label>
-	  <select class="form-control col-sm-3" id="type" name="type" required>
-	    <option disabled selected>Select closest</option>
-	  </select>
-	  <small id="estimateHelp" class="form-text text-muted col-sm-7">Type of project</small>
+	  <?php
+	  if (isset($_GET['type'])) {
+	      echo  "<input readonly tabindex='-1' type='text' id='type' name='type' value='" . $_GET['type'] . "'>";
+	  } else {
+	  ?>
+	    <select class="form-control col-sm-3" id="type" name="type" required>
+	      <option disabled selected>Select closest</option>
+	    </select>
+	    <small id="estimateHelp" class="form-text text-muted col-sm-7">Type of project</small>
+	  <?php
+	  }
+	  ?>
 	</div>
-
+	
 	<div class="form-group row">
 	  <label for="bioinformatician" class="col-sm-2 form-label">Bioinformatician</label>
-	  <select class="form-control col-sm-3" id="bioinformatician" name="bioinformatician" required>
-	    <option disabled selected>Select an individual/list</option>
-	    <optgroup label="Individuals" id="staff">
-	    </optgroup>
-	    <optgroup label="Mail-list">
-	      <option value="bioinformatics">Bioinformatics</option>
-	      <option value="biostatistics">Biostatistics</option>
-	    </optgroup>
-	  </select>
+	  <?php
+	  if (isset($_GET['id'])) {
+	      echo  "<input readonly tabindex='-1' type='text' id='bioinformatician' name='bioinformatician' value='" . $_GET['id'] . "'>";
+	  } else {
+	  ?>
+	    <select class="form-control col-sm-3" id="bioinformatician" name="bioinformatician" required>
+	      <option disabled selected>Select an individual/list</option>
+	      <optgroup label="Individuals" id="staff">
+	      </optgroup>
+	      <optgroup label="Mail-list">
+		<option value="bioinformatics">Bioinformatics</option>
+		<option value="biostatistics">Biostatistics</option>
+	      </optgroup>
+	    </select>
+	  <?php
+	  }
+	  ?>
 	</div>
 	<button type="submit" class="btn btn-primary">Submit</button>
       </form>
@@ -91,11 +124,6 @@
       </div>
     </div>
     <script>
-     let suggested_sci="<?php echo $_GET["sci"]; ?>";
-     if (suggested_sci!="") {
-	 document.getElementById('scientist').value = suggested_sci;
-	 document.getElementById('scientist').readOnly=true;
-     }
      let requests = Array();
      requests[0] = fetch("types.json")  
 	 .then(response => response.json())
@@ -103,15 +131,13 @@
 	     let option;
 	     let types = document.getElementById('type');
 	     let suggested_type="<?php echo $_GET["type"]; ?>";
-
-	     if (suggested_type!="") {
-		 data={[suggested_type] : data[suggested_type]};
-	     }
-	     for (const [ key, value ] of Object.entries(data)) {
-		 option = document.createElement('option');
-		 option.text = value.type;
-		 option.value = key;
-		 types.add(option);
+	     if (suggested_type=="") {
+		 for (const [ key, value ] of Object.entries(data)) {
+		     option = document.createElement('option');
+		     option.text = value.type;
+		     option.value = key;
+		     types.add(option);
+		 }
 	     }
 	 });
      requests[1] = fetch("babs_staff.json")
@@ -120,14 +146,13 @@
 	     let bioinfs = document.getElementById('staff');
 	     let suggested_bioinf="<?php echo $_GET["id"]; ?>";
 	     let option;
-	     if (suggested_bioinf!="") {
-		 data={[suggested_bioinf] : data[suggested_bioinf]};
-	     }
-	     for (const [ key, value ] of Object.entries(data)) {
-		 option = document.createElement('option');
-		 option.text = value.first;
-		 option.value = key;
-		 bioinfs.appendChild(option);
+	     if (suggested_bioinf=="") {
+		 for (const [ key, value ] of Object.entries(data)) {
+		     option = document.createElement('option');
+		     option.text = value.first;
+		     option.value = key;
+		     bioinfs.appendChild(option);
+		 }
 	     }
 	 });
      requests[2] = fetch("groups.json")
@@ -138,30 +163,27 @@
 	     let ops = document.getElementById('opslist');
 	     let suggested_lab="<?php echo $_GET["lab"]; ?>";
 	     let option;
-	     if (suggested_lab!="") {
-		 data.labs=data.labs.filter(d => d==suggested_lab)
-		 data.stps=data.stps.filter(d => d==suggested_lab)
-		 data.ops=data.ops.filter(d => d==suggested_lab)
+	     if (suggested_lab=="") {
+		 for (let i = 0; i < data.labs.length; i++) {
+		     option = document.createElement('option');
+		     d=data.labs[i];
+		     option.text = d.slice(0,1).toUpperCase() +d.slice(1,-1) + ", " + d.slice(-1).toUpperCase();
+		     option.value = data.labs[i];
+		     labs.appendChild(option);
+		 }
+		 for (let i = 0; i < data.stps.length; i++) {
+		     option = document.createElement('option');
+		     option.text = data.stps[i];
+		     option.value = data.stps[i];
+		     stps.appendChild(option);
+		 }    
+		 for (let i = 0; i < data.ops.length; i++) {
+		     option = document.createElement('option');
+		     option.text = data.ops[i];
+		     option.value = data.ops[i];
+		     ops.appendChild(option);
+		 }    
 	     }
-	     for (let i = 0; i < data.labs.length; i++) {
-		 option = document.createElement('option');
-		 d=data.labs[i];
-		 option.text = d.slice(0,1).toUpperCase() +d.slice(1,-1) + ", " + d.slice(-1).toUpperCase();
-		 option.value = data.labs[i];
-		 labs.appendChild(option);
-	     }    
-	     for (let i = 0; i < data.stps.length; i++) {
-		 option = document.createElement('option');
-		 option.text = data.stps[i];
-		 option.value = data.stps[i];
-		 stps.appendChild(option);
-	     }    
-	     for (let i = 0; i < data.ops.length; i++) {
-		 option = document.createElement('option');
-		 option.text = data.ops[i];
-		 option.value = data.ops[i];
-		 ops.appendChild(option);
-	     }    
 	 });
      Promise.all(requests).then(
 	 function(data) {

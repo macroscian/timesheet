@@ -45,7 +45,7 @@
 	  <div class="form-group row">
 	  <label for="code" class="col-sm-2 form-label">Cost Code</label>
 	  <input type="text" pattern="[0-9]{5}" class="form-control col-sm-3" id="code" aria-describedby="codeHelp" name="code" required>
-	  <small id="codeHelp" class="form-text text-muted col-sm-7">Please provide a code so that STPs can keep track of where their time is spent.</small>
+	  <small id="codeHelp" class="form-text text-muted col-sm-7">Please provide a five-digit code so that STPs can keep track of where their time is spent.</small>
 	</div>
 
 	<div class="form-group row">
@@ -76,7 +76,7 @@
 	    <option disabled selected>Select an individual/list</option>
 	    <optgroup label="Individuals" id="staff">
 	    </optgroup>
-	    <optgroup label="Mail-list">
+	    <optgroup label="Mail-list" id="maillist">
 	      <option value="bioinformatics">Bioinformatics</option>
 	      <option value="biostatistics">Biostatistics</option>
 	    </optgroup>
@@ -118,7 +118,6 @@
 	     let option;
 	     let types = document.getElementById('type');
 	     let suggested_type="<?php echo $_GET["type"]; ?>";
-
 	     if (suggested_type!="") {
 		 data={[suggested_type] : data[suggested_type]};
 	     }
@@ -127,6 +126,10 @@
 		 option.text = value.type;
 		 option.value = key;
 		 types.add(option);
+		 if (option.value == suggested_type) {
+		     option.selected="selected";
+		 }
+
 	     }
 	 });
      requests[1] = fetch("babs_staff.json")
@@ -137,12 +140,16 @@
 	     let option;
 	     if (suggested_bioinf!="") {
 		 data={[suggested_bioinf] : data[suggested_bioinf]};
+		 document.getElementById("maillist").remove();
 	     }
 	     for (const [ key, value ] of Object.entries(data)) {
 		 option = document.createElement('option');
 		 option.text = value.first;
 		 option.value = key;
 		 bioinfs.appendChild(option);
+		 if (option.value == suggested_bioinf) {
+		     option.selected="selected";
+		 }
 	     }
 	 });
      requests[2] = fetch("groups.json")
@@ -164,6 +171,10 @@
 		 option.text = d.slice(0,1).toUpperCase() +d.slice(1,-1) + ", " + d.slice(-1).toUpperCase();
 		 option.value = data.labs[i];
 		 labs.appendChild(option);
+		 if (suggested_lab == option.value) {
+		     option.selected="selected";
+		 }
+		     
 	     }    
 	     for (let i = 0; i < data.stps.length; i++) {
 		 option = document.createElement('option');

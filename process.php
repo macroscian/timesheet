@@ -21,7 +21,20 @@ error_reporting(E_ALL);
       $path = "/camp/stp/babs/working/{$_POST['bioinformatician']}/$proj/${_POST['lab']}/"
 	    . explode("@", $_POST["scientist"])[0]
 	    . "/$safe_title";
-      $hash = md5($path);
+      // $hash = md5($path);
+      $sci_initials = strtolower(preg_replace("/(\b[a-zA-Z])[a-zA-Z]*[^a-zA-Z]*/", "$1",
+				   preg_replace("/@.*/", "", $_POST["scientist"])));
+      $db = new SQLite3('/camp/stp/babs/www/kellyg/timesheets.db');
+      $insert = $db->prepare('INSERT INTO projects (Project, Bioinformatician, Scientist, Lab)
+VALUES (:Project, :Bioinformatician, :Scientist, :Lab);');
+      $insert->bindValue(':Project', $_POST["project"], SQLITE3_TEXT);
+      $insert->bindValue(':Bioinformatician', $_POST["bioinformatician"], SQLITE3_TEXT);
+      $insert->bindValue(':Scientist', $_POST["scientist"], SQLITE3_TEXT);
+      $insert->bindValue(':Lab', $_POST["lab"], SQLITE3_TEXT);
+      $insert->execute();
+      $hash = $sci_initials . $db->lastInsertRowID() ;
+      $db->close();
+      unset($db);
       $sci_name =  ucwords(str_replace(".", " ",strtolower(explode("@", $_POST["scientist"])[0])));
       date_default_timezone_set("Europe/London");
       $date = date("Y-m-d");
@@ -52,12 +65,12 @@ error_reporting(E_ALL);
       );
       $people = json_decode(file_get_contents("babs_staff.json"),true);
       if (array_key_exists($_POST["bioinformatician"], $people)){
-	  $person = $people[$_POST["bioinformatician"]];
+	  $person = $people[$_POST["bioinformatician"]]['first'];
       } else {
 	  $person = $_POST["bioinformatician"];
       }
       $slackurl = 'https://hooks.slack.com/services/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';
-      $data = array("text" => "New ticket for {$person['first']} from {$_POST['scientist']}\n {$_POST['project']}");
+      $data = array("text" => "New ticket for {$person} from {$_POST['scientist']}\n {$_POST['project']}");
       $postdata = json_encode($data);
       $ch = curl_init($slackurl);
       curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -70,9 +83,9 @@ error_reporting(E_ALL);
 
       switch ($_POST["who"]) {
 	  case "sci": 
-	      echo "<p>{$_POST['lab']}@crick.ac.uk has been emailed to assign a cost-code and initial amount of time that BABS can spend on this project.
+	      echo "<p>{$lab_email}@crick.ac.uk has been emailed to assign a cost-code and initial amount of time that BABS can spend on this project.
  You will receive an email when it has been approved  - please follow up with them if you don't receive this. If that email is incorrect please inform BABS.</p>";
-	      mail("{$_POST['bioinformatician']}@crick.ac.uk, {$_POST['lab']}@crick.ac.uk",
+	      mail("{$_POST['bioinformatician']}@crick.ac.uk, {$lab_email}@crick.ac.uk",
 		   "Approval required: {$_POST['project']}" ,
 		   "{$_POST['scientist']} has requested we work on a project {$_POST['project']}. It is necessary for us to seek PI approval before we start work on this, so please visit the following page to allocate a cost-code and initial estimate of time you permit us to spend working on the project.\n\n {$url}approval.php?project=$hash \n\nIf you are not the PI, please reply to this email to let us know, and accept our apologies.",
 		   $headers);
@@ -80,14 +93,14 @@ error_reporting(E_ALL);
 	      break;
 	  case "pi": 
 	      echo "<p>Thank you for completing this - an email has been sent to the scientist and the allocated member of BABS, and you will receive a copy.</p>";
-	      mail("{$_POST['bioinformatician']}@crick.ac.uk,  {$_POST['lab']}@crick.ac.uk,  {$_POST['scientist']}",
+	      mail("{$_POST['bioinformatician']}@crick.ac.uk,  {$lab_email}@crick.ac.uk,  {$_POST['scientist']}",
 		   "Approval received:  {$_POST['project']}",
 		   "We have received PI approval for {$_POST['estimate']} hours to be spent using code {$_POST['code']} on {$_POST['project']}.\n",
 		   $headers);
 	      break;
 	  case "scipi":
-	      echo "<p>Thank you for completing this - an email has been sent to you, your PI and the allocated member of BABS.</p>";
-	      mail("{$_POST['bioinformatician']}@crick.ac.uk,  {$_POST['lab']}@crick.ac.uk, {$_POST['scientist']}",
+	      echo "<p>Thank you for completing this - an email has been sent to you, your PI ({$lab_email}) and the allocated member of BABS.</p>";
+	      mail("{$_POST['bioinformatician']}@crick.ac.uk,  {$lab_email}@crick.ac.uk, {$_POST['scientist']}",
 		   "BABS Project requested: {$_POST['project']}",
 		   "Bioinformatics and Biostatistics STP have received a work request for {$_POST['estimate']} hours to be spent using code {$_POST['code']} on {$_POST['project']}. If this is incorrect or unapproved please inform us immediately. \n",
 		   $headers);
