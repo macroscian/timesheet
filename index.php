@@ -11,11 +11,14 @@ error_reporting(E_ALL);
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>BABS Timesheet</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
+
+    <!-- Build the data from which the timesheet rows will be made -->
+
     <script>
      var unsaved;
-     var active_projects=<?php include 'get_active_projects.php'; ?>;
+     var active_projects=<?php include 'get_active_projects.php'; ?>; // convert ts's yaml (of all my projects) to json
      var getid='<?php echo $_GET["id"]; ?>';
-     active_projects = active_projects.flatMap(function(p) {
+     active_projects = active_projects.flatMap(function(p) {  // Handle multi-code projects. Expand them to duplicates
 	 var codes = p.Code.split(",");
 	 var ps; 
 	 if (codes.length==1) {
@@ -30,7 +33,7 @@ error_reporting(E_ALL);
 	 }
 	 return(ps);
      });
-     babs_projects = <?php echo file_get_contents("yml/babs.js") ?>;
+     babs_projects = <?php echo file_get_contents("yml/babs.js") ?>; // Generic projects
      babs_projects = babs_projects.map(proj => {
 	 proj.Bioinformatician=getid;
 	 proj.Code=proj.Project;
@@ -40,7 +43,7 @@ error_reporting(E_ALL);
 	 return(proj);});
      active_projects = active_projects.concat(babs_projects);
      active_projects = active_projects.filter(proj => proj.Active=="True");
-     active_projects = active_projects.map(proj =>  {
+     active_projects = active_projects.map(proj =>  { // Create more fields to enable timesheet entries
 	 proj.Hours=proj.default_time || 0;
 	 proj.orig_hours=proj.default_time || 0;
 	 proj.fixed=!!proj.default_time;
@@ -101,9 +104,13 @@ error_reporting(E_ALL);
       
       <button type="button" class="btn btn-primary" onClick="submit()">Submit</button>
     </div>
+    <!-- End  body of timesheet -->
     
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
+
+    
+    <!-- Populate timesheet via javascript -->
     <script src="timesheet.js"></script>
     <script>
      var tips=[];
