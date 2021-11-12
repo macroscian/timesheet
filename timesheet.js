@@ -3,7 +3,7 @@ function get_timesheet(range) {
     // `range` will tell the database-retrieval what to get
     // if it has keys 'day', 'week' or 'month' it will return the relevant entries
     //
-    range.Bioinformatician = "<?php echo $_GET["id"]; ?>";
+    range.Bioinformatician = getid;
     d3.json('get_time.php', {
 	method: 'POST',
 	headers: { 'Content-Type': 'application/json'},
@@ -40,7 +40,7 @@ function update_projects(data) { // process database entries of recorded time
     });
     active_projects=db_entries.concat(active_projects);
     // Get each project's history of hours spent
-    var hashes={hashes:active_projects.map(x => x.Hash), id:"<?php echo $_GET["id"]; ?>"};
+    var hashes={hashes:active_projects.map(x => x.Hash), id:getid};
     d3.json('project_hours.php', {
 	method: 'POST',
 	headers: { 'Content-Type': 'application/json'},

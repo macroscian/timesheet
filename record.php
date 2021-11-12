@@ -14,6 +14,7 @@ error_reporting(E_ALL);
     <script>
      var unsaved;
      var active_projects=<?php include 'get_active_projects.php'; ?>;
+     var getid='<?php echo $_GET["id"]; ?>';
      active_projects = active_projects.flatMap(function(p) {
 	 var codes = p.Code.split(",");
 	 var ps; 
@@ -31,7 +32,7 @@ error_reporting(E_ALL);
      });
      babs_projects = <?php echo file_get_contents("yml/babs.js") ?>;
      babs_projects = babs_projects.map(proj => {
-	 proj.Bioinformatician='<?php echo $_GET["id"]; ?>';
+	 proj.Bioinformatician=getid;
 	 proj.Code=proj.Project;
 	 proj.Lab="babs";
 	 proj.Hash="babs_" + proj.Project;
@@ -100,7 +101,6 @@ error_reporting(E_ALL);
       
       <button type="button" class="btn btn-primary" onClick="submit()">Submit</button>
     </div>
-    
     
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
