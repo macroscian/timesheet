@@ -3,6 +3,10 @@
 	"email": "Aengus.Stewart@crick.ac.uk",
 	"first": "Aengus",
 	"surname": "Stewart"},
+    "ghanata":{
+	"email": "avinash.ghanate@crick.ac.uk",
+	"first": "Avinash",
+	"surname": "Ghanate"},
     "sawyerc":{
 	"email": "chelsea.sawyer@crick.ac.uk",
 	"first": "Chelsea",
@@ -19,17 +23,17 @@
 	"email": "gavin.kelly@crick.ac.uk",
 	"first": "Gavin",
 	"surname": "Kelly"},
-    "patelh":{
-	"email": "Harshil.Patel@crick.ac.uk",
-	"first": "Harshil",
-	"surname": "Patel"},
+    "gerontl":{
+	"email": "lina.gerontogianni@crick.ac.uk",
+	"first": "Lina",
+	"surname": "Gerontogianni"},
     "sopenam":{
 	"email": "miriam.lloriansopena@crick.ac.uk",
 	"first": "Miriam",
 	"surname": "Llorian Sopena"},
     "bahn":{
 	"email": "nourdine.bah@crick.ac.uk",
-	"first": "Noudine",
+	"first": "Nourdine",
 	"surname": "Bah"},
     "barriop":{
 	"email": "pablo.barrio@crick.ac.uk",
@@ -54,9 +58,5 @@
     "boeings":{
 	"email": "Stefan.Boeing@crick.ac.uk",
 	"first": "Stefan",
-	"surname": "Boeing"},
-    "horswes":{
-	"email": "Stuart.Horswell@crick.ac.uk",
-	"first": "Stuart",
-	"surname": "Horswell"}
+	"surname": "Boeing"}
 }
