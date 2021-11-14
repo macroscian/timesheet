@@ -183,8 +183,8 @@ if (array_key_exists('todate', $input)) {
 }
 
 
-//$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
-$statement = $db ->prepare('select * FROM (SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end) AS range LEFT JOIN (select Hash, Min(Date)>= :start as isNew from entries group by Hash)  AS first ON range.Hash=first.Hash;');
+$statement = $db->prepare('SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
+//$statement = $db ->prepare('select * FROM (SELECT * FROM  entries WHERE ' . $where . 'Date >= :start AND Date < :end) AS range LEFT JOIN (select Hash, Min(Date)>= :start as isNew from entries group by Hash)  AS first ON range.Hash=first.Hash;');
 foreach ( $filters as $key => $value ) {
     $statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
 }

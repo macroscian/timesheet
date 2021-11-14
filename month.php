@@ -34,7 +34,6 @@ error_reporting(E_ALL);
 		   dbase.entries,
 		   v => ({
 		       Hours: d3.sum(v, d=>d.Hours).toFixed(2),
-		       "Free Hour": d3.max(v, d=>d.isNew),
 		       Project: [...new Set(v.map(d => d.Project))].join(","),
 		       Scientist: [...new Set(v.map(d => d.Scientist))].join(","),
 		       Lab: [...new Set(v.map(d => d.Lab))].join(","),
