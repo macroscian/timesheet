@@ -59,15 +59,6 @@ foreach ( $filters as $key => $value ) {
 
 # If we didn't specify a timescale, work out from last filled-entered date
 if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  => 3, 'todate' => 3)))==0) {
-    if (count($filters)==1 and array_key_exists('Hash', $filters)) {
-	# To handle the "Add project hashed" functionality in index.php, where it
-	# just posts the required hash.
-	$statement = $db->prepare('SELECT * FROM entries WHERE Hash = :hash LIMIT 1;');
-	$statement->bindValue(':hash', $input['Hash'], SQLITE3_TEXT);
-	$result = $statement->execute()->fetchArray(SQLITE3_ASSOC);
-	echo json_encode($result);
-	exit;
-    }
     $today = new DateTime();
     $statement = $db->prepare('SELECT MAX(Date) FROM entries WHERE ' . $where . 'Date <= :now;');
     foreach ( $filters as $key => $value ) {
