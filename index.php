@@ -8,9 +8,9 @@ error_reporting(E_ALL);
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="resources/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>BABS Timesheet</title>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="resources/d3.v6.min.js"></script>
 
     <!-- Build the data from which the timesheet rows will be made -->
 
@@ -67,7 +67,12 @@ error_reporting(E_ALL);
 	<div class="col col-8" style="text-align:center;">
 	  <?php
 	  $staff= json_decode(file_get_contents("babs_staff.json"), true);
-	  echo $staff[$_GET['id']]["first"];
+	  $my_id=explode( '_', $_GET['id'] )[0];
+	  if (array_key_exists($my_id, $staff)) {
+	      echo $staff[$my_id]["first"];
+	  } else {
+	      echo $_GET['id'];
+	  }
 	  ?>'s time for <span id="catchup"></span>
 	</div>
 	<div class="col" style="text-align:right;">
@@ -106,8 +111,8 @@ error_reporting(E_ALL);
     </div>
     <!-- End  body of timesheet -->
     
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script src="resources/core@2"></script>
+    <script src="resources/tippy.js@6"></script>
 
     
     <!-- Populate timesheet via javascript -->

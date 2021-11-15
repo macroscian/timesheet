@@ -1,6 +1,6 @@
 <?php
 $buffered_line = "[";
-$fname = "yml/" . $_GET["id"] . ".yml";
+$fname = "yml/" .  explode( '_', $_GET['id'] )[0] . ".yml";
 if (!file_exists($fname)) {
     echo "[]";
 } else {

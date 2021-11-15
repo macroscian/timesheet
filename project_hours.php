@@ -26,23 +26,37 @@ $ranges = array(
 );
 $entries = array();
 
+function my_anon_rows($sqlite, $id, $my_range) {
+    $range_entries=array();
+    while($row = $sqlite->fetchArray(SQLITE3_ASSOC)){
+	if (sha1($id . $row['Hash'] . $row['Date'])==$row['Bioinformatician'] or $row['Bioinformatician']==$id) {
+	    if (array_key_exists($row['Hash'], $range_entries)) {
+		$range_entries[$row['Hash']]['hours'] += $row['Hours'] ;
+	    } else {
+		$range_entries[$row['Hash']] = Array('Hash' => $row['Hash'],
+						     'hours' => $row['Hours'],
+						     'range' => $my_range);
+	    }
+	}
+    }
+    return $range_entries;
+}
+
 foreach($ranges as $key => $range) {
     $qMarks = str_repeat('?,', count($hashes) - 1) . '?';
-    $sth = $db->prepare("SELECT Hash, SUM(hours) as hours FROM entries WHERE (Bioinformatician=?) AND Date>=:start AND date<:end AND Hash IN ($qMarks) GROUP BY Hash;");
-    $sth->bindValue(1, $input['id'], SQLITE3_TEXT);
-    $sth->bindValue(2, date('Y-m-d', strtotime($range['start'])), SQLITE3_TEXT);
-    $sth->bindValue(3, date('Y-m-d', strtotime($range['end'])), SQLITE3_TEXT);
-    $i = 4;
+    $sth = $db->prepare("SELECT Bioinformatician, Date, Hash, Hours FROM entries WHERE  Date>=:start AND date<:end AND Hash IN ($qMarks) ORDER BY Hash;");
+    $sth->bindValue(1, date('Y-m-d', strtotime($range['start'])), SQLITE3_TEXT);
+    $sth->bindValue(2, date('Y-m-d', strtotime($range['end'])), SQLITE3_TEXT);
+    $i = 3;
     foreach($hashes as $hash) {
 	$sth->bindValue($i, $hash, SQLITE3_TEXT);
 	$i += 1;
     }
     $result = $sth->execute();
-
-    while($row = $result->fetchArray(SQLITE3_ASSOC)){
-	$row['range'] = $key;
-	$entries[] = $row;
-    } 
+    $agg = my_anon_rows($result, $input['id'], $key);
+    foreach ($agg as $key => $ent) {
+	$entries[] = $ent;
+    }
 }
 
 $db->close();

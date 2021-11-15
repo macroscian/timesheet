@@ -31,6 +31,17 @@ function dec_weekday(&$date) {
     return $new_week;
 }
 
+function my_anon_rows($sqlite, $id) {
+    $entries=array();
+    while($row = $sqlite->fetchArray(SQLITE3_ASSOC)){
+	if (sha1($id . $row['Hash'] . $row['Date'])== $row['Bioinformatician'] or $row['Bioinformatician']==$id or $id=="") {
+	    $entries[] = $row;
+	}
+    }
+    return $entries;
+}
+
+
 
 $input = json_decode(file_get_contents('php://input'),true);
 $db = new SQLite3($config["db"]);
@@ -52,20 +63,27 @@ $filters = array_intersect_key( # only allow filters to be built with these fiel
 );
 
 $where = ""; # build prepared filter. OK to finish with AND as we always add another condition on
+$anonymised= "";
 foreach ( $filters as $key => $value ) {
-    $where .= $key . "=:" . $key . " AND ";
+    if ($key != 'Bioinformatician') {
+	$where .= $key . "=:" . $key . " AND ";
+    }	 else {
+	$anonymised = $value;
+    }
 }
 
 
 # If we didn't specify a timescale, work out from last filled-entered date
 if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  => 3, 'todate' => 3)))==0) {
     $today = new DateTime();
-    $statement = $db->prepare('SELECT MAX(Date) FROM entries WHERE ' . $where . 'Date <= :now;');
+    //    $statement = $db->prepare('SELECT MAX(Date) FROM entries WHERE ' . $where . 'Date <= :now;');
+    $statement = $db->prepare('SELECT * FROM entries WHERE ' . $where . 'Date <= :now ORDER BY Date DESC;');
     foreach ( $filters as $key => $value ) {
 	$statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
     }
     $statement->bindValue(':now', $today->format($fday), SQLITE3_TEXT);
-    $result = $statement->execute()->fetchArray(SQLITE3_NUM)[0];
+    //    $result = $statement->execute()->fetchArray(SQLITE3_NUM)[0];
+    $result= my_anon_rows($statement->execute(), $anonymised);
     if (!$result) { # no entries, so let's start from monday
 	$dow = $today->format("N") + 0; # monday=1..., so days since sunday
 	$today->sub(new DateInterval("P" . $dow . "D")); # will take us back to sunday, but 'move' increments
@@ -73,10 +91,13 @@ if (count(array_intersect_key($input, array('day'  => 1, 'week'  => 2, 'month'  
 	$input['move'] = "static";
 	#$input['week'] = "2020W32";
     } else {
-	$input['end'] = $result;
+	$input['end'] = $result[0]['Date'];
 	$input['move'] = "static";
     }
 }
+
+
+
 
 $oneday = new DateInterval('P1D');
 $today = new DateTime();
@@ -100,12 +121,14 @@ if (array_key_exists('move', $input)) {
 	# logic should be - if our new week already has day/week mode entries, stick with that
 	# otherwise historical whole weeks are week mode, present and future are day mode
 	#	    $statement = $db->prepare('SELECT MIN(Date) FROM entries WHERE ' . $where . 'Date >= :start AND Date < :end;');
-	$statement = $db->prepare('SELECT MIN(Date) FROM entries WHERE ' . $where . 'julianday(Date)-julianday(:start) BETWEEN ' . $weekrange . ';');
+	//$statement = $db->prepare('SELECT MIN(Date) FROM entries WHERE ' . $where . 'julianday(Date)-julianday(:start) BETWEEN ' . $weekrange . ';');
+	$statement = $db->prepare('SELECT * FROM entries WHERE ' . $where . 'julianday(Date)-julianday(:start) BETWEEN ' . $weekrange . ' ORDER BY Date DESC;');
 	foreach ( $filters as $key => $value ) {
 	    $statement->bindValue(':' . $key, $input[$key], SQLITE3_TEXT);
 	}
 	$statement->bindValue(':start', $newstart->format($fday), SQLITE3_TEXT);
-	$result = $statement->execute()->fetchArray(SQLITE3_NUM)[0];
+	//	$result = $statement->execute()->fetchArray(SQLITE3_NUM)[0];
+	$result= my_anon_rows($statement->execute(), $anonymised);
 	if (!$result) { # an empty week
 	    $interval = date_diff($newstart, $today)->format("%r%a");
 	    if ($interval >= $delta_day) {# true if week is fully in the past.
@@ -118,7 +141,7 @@ if (array_key_exists('move', $input)) {
 		unset($input['month']);
 	    }
 	} else { # there's entries sometime this week
-	    $first = new DateTime($result);
+	    $first = new DateTime($result[0]['Date']);
 	    if ($first->format("N") > 5) { #it it was week-mode
 		$input['week']=$newstart->format($fweek);
 		unset($input['day']);
@@ -182,7 +205,7 @@ foreach ( $filters as $key => $value ) {
 
 $statement->bindValue(':start', $start, SQLITE3_TEXT);
 $statement->bindValue(':end', $end, SQLITE3_TEXT);
-$result = $statement->execute();
+//$result = $statement->execute();
 
 $input['start'] = $start;
 $input['end']=$end;
@@ -190,11 +213,12 @@ $end = new DateTime($end);
 $end->sub(new DateInterval("P1D")); # return the last day of the current range, for future reporting purposes
 $input['recorddate'] = $end->format($fday);
 
+$entries = my_anon_rows($statement->execute(), $anonymised);
 
-$entries = array();
-while($row = $result->fetchArray(SQLITE3_ASSOC)){
-    $entries[] = $row;
-} 
+/* $entries = array();
+ * while($row = $result->fetchArray(SQLITE3_ASSOC)){
+ *     $entries[] = $row;
+ * }  */
 $db->close();
 unset($db);
 $input['entries'] = $entries;

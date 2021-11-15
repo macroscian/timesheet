@@ -8,14 +8,16 @@ error_reporting(E_ALL);
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="resources/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <title>BABS Timesheet</title>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="resources/d3.v6.min.js"></script>
     <script>
      var urlget = <?php echo json_encode($_GET);  ?>;
     </script>
   </head>
   <body>
+    <label for="which_month">Choose month:</label>
+    <input type="month" id="which_month" name="start" value="<?php echo date('Y-m'); ?>"  >
     <a id="download" href=".">Download Report</a>
     <div id="grid">
     </div>
@@ -54,10 +56,10 @@ error_reporting(E_ALL);
 		   dbase.entries,
 		   v =>({total:d3.sum(v, d => d.Hours) ,
 			babs:d3.sum(v.filter(d => d.Lab=="babs"), d => d.Hours),
-			Bioinformatician: v[0].Bioinformatician,
+			Bioinformatician: "Me",
 			week: v[0].week
 		   }),
-		   d => d.Bioinformatician,
+		   d => "Me",
 		   d => d.week
 	       );
 	       var staff_scale = d3.scaleBand([...staffXweek.keys()].sort(),

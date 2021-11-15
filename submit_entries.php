@@ -14,10 +14,12 @@ $delete->execute();
 $insert = $db->prepare('INSERT INTO entries (Project, Bioinformatician, Scientist, Lab, Code, Hash, Type, Hours, Date, Note)
 VALUES (:Project, :Bioinformatician, :Scientist, :Lab, :Code, :Hash, :Type, :Hours, :Date, :Note);');
 
-$insert->bindValue(':Bioinformatician', $input['Bioinformatician'], SQLITE3_TEXT);
+//$insert->bindValue(':Bioinformatician', $input['Bioinformatician'], SQLITE3_TEXT);
+
 $insert->bindValue(':Date', $input['recorddate'], SQLITE3_TEXT);
 
 foreach($input['entries'] as $php_row) {
+    $insert->bindValue(':Bioinformatician', sha1($input['Bioinformatician'] . $php_row['Hash'] . $input['recorddate']), SQLITE3_TEXT);
     $insert->bindValue(':Project', $php_row['Project'], SQLITE3_TEXT);
     $insert->bindValue(':Scientist', $php_row['Scientist'], SQLITE3_TEXT);
     $insert->bindValue(':Lab', $php_row['Lab'], SQLITE3_TEXT);
