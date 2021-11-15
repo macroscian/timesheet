@@ -9,15 +9,20 @@ error_reporting(E_ALL);
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="resources/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <title>BABS Timesheet</title>
+    <title>BABS Time Report</title>
     <script src="resources/d3.v6.min.js"></script>
     <script>
      var urlget = <?php echo json_encode($_GET);  ?>;
+     if (urlget.length==0) {
+	 urlget={'month': "<?php echo date('Y-m'); ?>"};
+     }
     </script>
   </head>
   <body>
     <label for="which_month">Choose month:</label>
-    <input type="month" id="which_month" name="start" value="<?php echo date('Y-m'); ?>"  >
+    <input type="month" id="which_month" name="start" value="<?php echo date('Y-m'); ?>"  onchange="change_month(this)">
+    <label for="which_id">Your ID:</label>
+    <input type="password" id="which_ID" name="start" value=""   onchange="change_ID(this)">
     <a id="download" href=".">Download Report</a>
     <div id="grid">
     </div>
@@ -55,9 +60,9 @@ error_reporting(E_ALL);
 	       staffXweek  = d3.rollup(
 		   dbase.entries,
 		   v =>({total:d3.sum(v, d => d.Hours) ,
-			babs:d3.sum(v.filter(d => d.Lab=="babs"), d => d.Hours),
-			Bioinformatician: "Me",
-			week: v[0].week
+			 babs:d3.sum(v.filter(d => d.Lab=="babs"), d => d.Hours),
+			 Bioinformatician: "Me",
+			 week: v[0].week
 		   }),
 		   d => "Me",
 		   d => d.week
@@ -125,6 +130,20 @@ error_reporting(E_ALL);
 		   .style("stroke", "black");
 	       
 	   })
+     }
+     function change_month(x) {
+	 d3.select('#download').attr('href', "#");
+	 urlget.month=x.value;
+	 get_timesheet(urlget);
+     }
+     function change_ID(x) {
+	 d3.select('#download').attr('href', "#");
+	 if (x.value=="") {
+	     delete urlget.Bioinformatician;
+	 } else {
+	     urlget.Bioinformatician=x.value;
+	 }
+	 get_timesheet(urlget);
      }
     </script>
   </body>

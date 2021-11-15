@@ -6,7 +6,7 @@ app_store := $(www_base)/web_data/$(app_name)
 .PHONY: deploy
 
 deploy: $(app_base)/config.php $(app_base)/resources
-	cp {get_active_projects,get_time,month,project_hours,index,submit_entries}.php $(app_base)/
+	cp {get_active_projects,get_time,report,project_hours,index,submit_entries}.php $(app_base)/
 	cp {timesheet.js,babs_staff.json} $(app_base)/
 	mkdir -p $(app_base)/yml
 	cp yml/babs.js $(app_base)/yml/
