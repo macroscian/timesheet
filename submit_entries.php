@@ -7,12 +7,46 @@ $db = new SQLite3($config["db"]);
 $input = json_decode(file_get_contents('php://input'),true);
 
 $delete = $db->prepare('DELETE FROM entries WHERE Date = :start AND Bioinformatician=:Bioinformatician;');
-$delete->bindValue(':Bioinformatician', $input['Bioinformatician'], SQLITE3_TEXT);
 $delete->bindValue(':start', $input['recorddate'], SQLITE3_TEXT);
-$delete->execute();
+
+$my_id=explode( '_', $input['Bioinformatician'] )[0];
+
+$on_date = $db->prepare('SELECT * FROM entries WHERE Date = :start;');
+$on_date->bindValue(':start', $input['recorddate'], SQLITE3_TEXT);
+$sqlite = $on_date->execute();
+while($row = $sqlite->fetchArray(SQLITE3_ASSOC)){
+    if (sha1($input['Bioinformatician'] . $row['Hash'] . $row['Date'])==$row['Bioinformatician'] or
+	$row['Bioinformatician']==$input['Bioinformatician']) {
+	$delete->bindValue(":Bioinformatician", $row['Bioinformatician']);
+	$delete->execute();
+    }
+}
+
+$latest = $db->prepare('SELECT Date FROM latest WHERE Bioinformatician=:Bioinformatician;');
+$latest->bindValue(':Bioinformatician', $my_id, SQLITE3_TEXT);
+$result = $latest->execute();
+if ($result) {
+    $result = $result->fetchArray(SQLITE3_NUM);
+}
+
+if (!$result) {
+    $latest =$db->prepare('INSERT INTO latest ( Date, Bioinformatician) VALUES (:Date, :Bioinformatician);');
+    $latest->bindValue(':Bioinformatician', $my_id, SQLITE3_TEXT);
+    $latest->bindValue(':Date', $input['recorddate'], SQLITE3_TEXT);
+    $latest->execute();
+}
+
+if ($result &&  $result[0] < $input['recorddate']) {
+    $latest =$db->prepare('UPDATE latest SET Date=:Date WHERE Bioinformatician=:Bioinformatician;');
+    $latest->bindValue(':Bioinformatician', $my_id, SQLITE3_TEXT);
+    $latest->bindValue(':Date', $input['recorddate'], SQLITE3_TEXT);
+    $latest->execute();
+}
+
+
 
 $insert = $db->prepare('INSERT INTO entries (Project, Bioinformatician, Scientist, Lab, Code, Hash, Type, Hours, Date, Note)
-VALUES (:Project, :Bioinformatician, :Scientist, :Lab, :Code, :Hash, :Type, :Hours, :Date, :Note);');
+    VALUES (:Project, :Bioinformatician, :Scientist, :Lab, :Code, :Hash, :Type, :Hours, :Date, :Note);');
 
 //$insert->bindValue(':Bioinformatician', $input['Bioinformatician'], SQLITE3_TEXT);
 
