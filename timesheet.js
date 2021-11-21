@@ -151,7 +151,7 @@ function generate_row_from_data(d,i) {
 	"</td><td>" + d.Scientist +
 	"</td><td>" + d.Lab +
 	'</td><td><input size="5" type="number" min="0" max="168" step="' + (0.1) +'" class="hour hour_input" value="' + d.Hours.toFixed(1) + '"' + (d.activated?"":"disabled") +  '></input> ' +
-	'<span class="spent" >' + d.spent + '</span>' + 
+	'<span class="spent" >' + d.spent + ' (' + d.Estimate +  ')</span>' + 
 	'<span class="fixed" style="visibility:' + ((d.fixed & d.activated)?"visible":"hidden") + '">&#128274</span>' + 
 	'</td><td><input class="hour_note" type="textarea" ' + (d.activated?"":"disabled") + 'value="' +d.Note + '"></td>';
     return(html);
@@ -196,7 +196,7 @@ function recalc() {
 	.property("value", d => d.Hours.toFixed(1))
 	.attr("disabled", d => d.activated?null:"true");
     rows.select("td span.spent")
-	.text(d => d.spent);
+	.text(d => d.spent + ' (' + d.Estimate + ')');
     rows.select("td input.hour_note")
 	.property("value", d => d.Note)
 	.attr("disabled", d => d.activated?null:"true");

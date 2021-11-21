@@ -1,7 +1,7 @@
 # Can change these to reflect new locations (or for temporary changes,  `make app_name=app_test`)
 www_base := /camp/stp/babs/www
 app_name := timesheets
-app_base := $(www_base)/internal/$(app_name)
+app_base := $(www_base)/internal/apps/$(app_name)
 app_store := $(www_base)/web_data/$(app_name)
 
 # Files that will be published
@@ -26,7 +26,7 @@ $(PUB): $(app_base)/%: % | $(app_base)
 $(app_base) $(app_store):
 	mkdir -p $@
 
-$(app_base)/resources: $(app_base)
+$(app_base)/resources: | $(app_base)
 	mkdir -p $(app_base)/resources/bootstrap/4.3.1/css/
 	wget -P $(app_base)/resources/bootstrap/4.3.1/css/ https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css
 	wget -P $(app_base)/resources https://d3js.org/d3.v6.min.js
