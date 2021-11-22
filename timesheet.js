@@ -153,7 +153,8 @@ function generate_row_from_data(d,i) {
 	'</td><td><input size="5" type="number" min="0" max="168" step="' + (0.1) +'" class="hour hour_input" value="' + d.Hours.toFixed(1) + '"' + (d.activated?"":"disabled") +  '></input> ' +
 	'<span class="spent" >' + d.spent + ' (' + d.Estimate +  ')</span>' + 
 	'<span class="fixed" style="visibility:' + ((d.fixed & d.activated)?"visible":"hidden") + '">&#128274</span>' + 
-	'</td><td><input class="hour_note" type="textarea" ' + (d.activated?"":"disabled") + 'value="' +d.Note + '"></td>';
+	'</td><td><input class="hour_note" type="textarea" " ' + (d.activated?"":"disabled") + 'value="' +d.Note +
+	'"></td><td><span class="clip_toggle"  onclick=clip_toggle("' + d.Path + '") title="Click to copy toggle command">📋</span></td>';
     return(html);
 }
 
@@ -181,6 +182,10 @@ function handle_increment(ev, dat) {
 function handle_note(ev, dat) {
     dat.Note = this.value;
     recalc()
+}
+
+function clip_toggle(path) {
+    navigator.clipboard.writeText("(cd " + path.replace(/.babs$/, "")  + "; ts toggle )");
 }
 
 function recalc() {
