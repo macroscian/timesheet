@@ -1,7 +1,7 @@
 # Can change these to reflect new locations (or for temporary changes,  `make app_name=app_test`)
 www_base := /camp/stp/babs/www
 app_name := timesheets
-app_base := $(www_base)/internal/apps/$(app_name)
+app_base := $(www_base)/html/internal/apps/$(app_name)
 app_store := $(www_base)/web_data/$(app_name)
 
 # Files that will be published
