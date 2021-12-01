@@ -215,6 +215,12 @@ $input['recorddate'] = $end->format($fday);
 
 $entries = my_anon_rows($statement->execute(), $anonymised);
 
+$resultset = $db->query('SELECT * FROM latest;');
+$latest=array();
+while($row = $resultset->fetchArray(SQLITE3_ASSOC)){
+    $latest[] = $row;
+}
+
 /* $entries = array();
  * while($row = $result->fetchArray(SQLITE3_ASSOC)){
  *     $entries[] = $row;
@@ -222,5 +228,6 @@ $entries = my_anon_rows($statement->execute(), $anonymised);
 $db->close();
 unset($db);
 $input['entries'] = $entries;
+$input['latest'] = $latest;
 echo json_encode($input);
 ?>
