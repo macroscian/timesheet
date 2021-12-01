@@ -6,7 +6,8 @@ app_store := $(www_base)/web_data/$(app_name)
 
 # Files that will be published
 SRC := get_active_projects.php get_time.php report.php\
-project_hours.php index.php submit_entries.php timesheet.js babs_staff.json yml/babs.js
+project_hours.php index.php submit_entries.php yml/babs.js\
+timesheet.js report.js
 
 ################################################################
 #### Everything below should be kept as-is

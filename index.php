@@ -68,7 +68,8 @@ error_reporting(E_ALL);
 	</div>
 	<div class="col col-8" style="text-align:center;">
 	  <?php
-	  $staff= json_decode(file_get_contents("babs_staff.json"), true);
+	  include('config.php');
+	  $staff= json_decode(file_get_contents($config["babs_staff.json"]), true);
 	  $my_id=explode( '_', $_GET['id'] )[0];
 	  if (array_key_exists($my_id, $staff)) {
 	      echo $staff[$my_id]["first"];
