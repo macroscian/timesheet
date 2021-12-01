@@ -38,7 +38,8 @@ $(app_base):
 $(app_store)/timesheets.db: | $(app_store)
 	mkdir -p $(app_store)
 	sqlite3 $@ "PRAGMA journal_mode = wal;" $(app_store)/timesheets.db
-	sqlite3 $@ "CREATE TABLE entries ( Project TEXT NOT NULL, Bioinformatician TEXT NOT NULL, Scientist TEXT NOT NULL, Lab TEXT NOT NULL, Code TEXT NOT NULL, Hash  TEXT NOT NULL, Type TEXT NOT NULL, Hours REAL, Date TEXT NOT NULL, Note TEXT);" $(app_store)/timesheets.db
+	sqlite3 $@ "CREATE TABLE entries ( Project TEXT NOT NULL, Bioinformatician TEXT NOT NULL, Scientist TEXT NOT NULL, Lab TEXT NOT NULL, Code TEXT NOT NULL, Hash  TEXT NOT NULL, Type TEXT NOT NULL, Hours REAL, Date TEXT NOT NULL, Note TEXT);" 
+	sqlite3 $@ "CREATE TABLE latest ( Bioinformatician TEXT NOT NULL, Date TEXT NOT NULL, Note TEXT);"
 
 
 $(app_store):

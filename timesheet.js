@@ -30,6 +30,8 @@ function update_projects(data) { // process database entries of recorded time
 	    proj.Hours = my_hours;
 	    proj.Note = my_note;
 	    active_projects.splice(ind, 1); // and remove the default entry
+	} else {
+	    proj.Estimate="X";
 	}
 	proj.activated=true;
 	proj.orig_activated = proj.activated;
